@@ -1,0 +1,14 @@
+# Replace the placeholder usernames, then uncomment.
+# GitHub asks these people for review when a PR touches their paths.
+
+# *                        @sentry/leads
+# /packages/contracts/     @MO_USERNAME @BRANDON_USERNAME
+# /docs/contracts/         @MO_USERNAME
+# /.github/                @MO_USERNAME
+# /apps/worker/            @MO_USERNAME
+# /packages/url-parser/    @BRANDON_USERNAME
+# /packages/core/          @MO_USERNAME @BRANDON_USERNAME
+# /packages/features/      @ETHAN_RAJACK_USERNAME
+# /ml/                     @ETHAN_RAJACK_USERNAME
+# /apps/extension/         @ETHAN_UNG_USERNAME @MO_USERNAME
+# /docs/cts/               @ETHAN_UNG_USERNAME

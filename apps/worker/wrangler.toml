@@ -1,0 +1,11 @@
+name = "sentry-worker"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Keys are Worker secrets, never in git:
+#   pnpm wrangler secret put SAFE_BROWSING_KEY
+#   pnpm wrangler secret put ABUSECH_KEY
+# For local runs put test values in .dev.vars (gitignored).
+
+[observability]
+enabled = false # no request logging (STY-FR-02)

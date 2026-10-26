@@ -1,0 +1,33 @@
+# data and models: never committed (Definition of Done, doc 09)
+data/*
+!data/README.md
+*.parquet
+*.csv
+!fixtures/**/*.csv
+ml/models/
+
+# secrets
+.env
+.env.*
+.dev.vars
+
+# build output
+.output/
+.wxt/
+.wrangler/
+dist/
+node_modules/
+*.zip
+
+# python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# os / editors
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

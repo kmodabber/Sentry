@@ -1,0 +1,6 @@
+pnpm-lock.yaml
+.output/
+.wxt/
+.wrangler/
+ml/
+data/

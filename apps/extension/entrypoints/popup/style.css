@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+.popup {
+  width: 320px;
+  padding: 16px;
+}
+.popup h1 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+.verdict-likely_safe h1 {
+  color: #1a7f37;
+}
+.verdict-suspicious h1 {
+  color: #9a6700;
+}
+.verdict-dangerous h1 {
+  color: #cf222e;
+}
+.score {
+  color: #57606a;
+  margin: 0 0 12px;
+}
+.partial {
+  font-size: 12px;
+  color: #57606a;
+}
