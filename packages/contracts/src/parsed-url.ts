@@ -1,4 +1,5 @@
-// C4 Parsed URL: Brandon's parser output. Placeholder until Brandon's C4 draft lands.
+// Parsed URL: Brandon's parser output, shared by checks and features. Not a numbered
+// contract in doc 05 (C4 there is the brand list), but changes still go through a contract/ PR.
 
 export interface ParsedUrl {
   href: string;

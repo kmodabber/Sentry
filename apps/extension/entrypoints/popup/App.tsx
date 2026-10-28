@@ -35,13 +35,18 @@ export default function App() {
 
   const v = state.verdict;
   return (
-    <main className={`popup verdict-${v.label}`}>
-      <h1>{LABEL_TEXT[v.label]}</h1>
+    <main className={`popup verdict-${v.verdict}`}>
+      <h1>{LABEL_TEXT[v.verdict]}</h1>
       <p className="score">Risk score: {v.score} / 100</p>
       {v.reasons.length > 0 ? (
         <ul>
           {v.reasons.map((r, i) => (
-            <li key={i}>{r.text}</li>
+            <li key={i}>
+              {r.text}
+              {r.source === "google" && (
+                <span className="attribution">Advisory provided by Google</span>
+              )}
+            </li>
           ))}
         </ul>
       ) : (
