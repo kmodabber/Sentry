@@ -1,45 +1,66 @@
-// C3 Worker API: extension <-> Cloudflare Worker. Draft v0, see docs/contracts/C3.md.
-// Full URLs never leave the device: only hash prefixes or a host.
-
-export const C3_VERSION = "c3.v0";
-
-export interface HealthResponse {
-  ok: true;
-  version: string;
-}
-
-export interface SafeBrowsingRequest {
-  /** Base64, 4 bytes each. */
-  hashPrefixes: string[];
-}
-export interface SafeBrowsingResponse {
-  matches: { fullHash: string; threatType: string }[];
-}
-
-export interface UrlhausRequest {
-  host: string;
-}
-export interface UrlhausResponse {
-  listed: boolean;
-  threat?: string;
-}
-
-export interface DomainAgeRequest {
-  registrableDomain: string;
-}
-export interface DomainAgeResponse {
-  /** ISO 8601, or null when unknown. */
-  createdAt: string | null;
-}
-
-export interface WorkerError {
-  error: { code: string; message: string };
-}
+// C3 Worker API: extension <-> Cloudflare Worker. v0, doc 05 section 3. Owner Mo.
+// JSON over HTTPS. The Worker never receives a full URL: only hash prefixes or a hostname.
 
 export const WORKER_ROUTES = {
-  health: "/health",
-  safeBrowsing: "/v0/safebrowsing",
-  openPhish: "/v0/openphish",
-  urlhaus: "/v0/urlhaus",
-  domainAge: "/v0/domain-age",
+  /** POST SafeBrowsingRequest -> SafeBrowsingResponse */
+  safeBrowsing: "/v1/sb",
+  /** GET, hostname in the path -> HostResponse. Use hostRoute() to build it. */
+  hostPrefix: "/v1/host/",
+  /** GET -> OpenPhishResponse */
+  openPhish: "/v1/feeds/openphish",
 } as const;
+
+export const hostRoute = (hostname: string) =>
+  `${WORKER_ROUTES.hostPrefix}${encodeURIComponent(hostname)}`;
+
+export const SB_MAX_PREFIXES = 30;
+export const RATE_LIMIT_PER_MINUTE = 60;
+/** How long the Worker caches a host answer. */
+export const HOST_CACHE_SECONDS = 24 * 60 * 60;
+/** How often the Worker refreshes the OpenPhish list. */
+export const OPENPHISH_REFRESH_SECONDS = 12 * 60 * 60;
+
+export interface SafeBrowsingRequest {
+  /** Base64 SHA-256 hash prefixes, up to SB_MAX_PREFIXES. */
+  prefixes: string[];
+}
+export interface SafeBrowsingResponse {
+  fullHashes: {
+    /** Base64 full SHA-256 hash; the extension compares locally. */
+    hash: string;
+    threatTypes: string[];
+    /** ISO 8601. The extension may cache the answer until then. */
+    expiresAt: string;
+  }[];
+}
+
+export interface HostResponse {
+  /** Null when the host is not listed on URLhaus. */
+  urlhaus: { threat: string; urlCount: number } | null;
+  /** ISO 8601 registration date from RDAP, or null when unknown. */
+  registeredAt: string | null;
+  /** Whether RDAP answered at all, so "unknown" is not mistaken for "new". */
+  rdap: boolean;
+}
+
+export interface OpenPhishResponse {
+  /** ISO 8601. */
+  updatedAt: string;
+  urls: string[];
+}
+
+export type WorkerErrorCode =
+  | "bad_request"
+  | "not_found"
+  | "method_not_allowed"
+  | "rate_limited"
+  | "upstream_down"
+  | "not_implemented";
+
+/** Every non-2xx body. 429 carries retryAfter; 503 means an upstream is down. */
+export interface WorkerError {
+  error: WorkerErrorCode;
+  message: string;
+  /** Seconds, on 429 only. Also sent as the Retry-After header. */
+  retryAfter?: number;
+}

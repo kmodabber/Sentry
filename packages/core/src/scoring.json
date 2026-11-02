@@ -1,0 +1,4 @@
+{
+  "thresholds": { "suspicious": 40, "dangerous": 70 },
+  "maxReasons": 4
+}

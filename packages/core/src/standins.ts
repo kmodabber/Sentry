@@ -1,6 +1,7 @@
 import type { Check } from "@sentry-ext/contracts";
+import { parseUrl } from "@sentry-ext/url-parser";
 
-// Stand-in checks: fake versions that return hard-coded answers in the C2 shape,
+// Stand-in checks: fake versions that return hard-coded answers in the C1 shape,
 // so the popup and pipeline work end to end before the real checks exist.
 // Each one is replaced by the real check in Stage 2.
 
@@ -8,24 +9,30 @@ import type { Check } from "@sentry-ext/contracts";
 export const standinLookalike: Check = {
   id: "lookalike",
   timeoutMs: 500,
-  async run({ parsed }) {
+  async check(url) {
+    const started = Date.now();
     const fakes: Record<string, string> = {
       "paypa1.com": "paypal.com",
       "rnicrosoft.com": "microsoft.com",
     };
-    const real = parsed.domain ? fakes[parsed.domain] : undefined;
-    if (!real) return { risk: 0, reasons: [] };
-    const start = parsed.hostname.indexOf(parsed.domain ?? "");
+    const { domain } = parseUrl(url);
+    const real = domain ? fakes[domain] : undefined;
+    if (!real) {
+      return {
+        check: "lookalike",
+        signal: "ok",
+        points: 0,
+        reason: null,
+        ms: Date.now() - started,
+      };
+    }
     return {
-      risk: 0.9,
-      reasons: [
-        {
-          checkId: "lookalike",
-          text: `This domain looks like ${real} but isn't.`,
-          severity: "danger",
-          highlight: { start, end: start + (parsed.domain?.length ?? 0) },
-        },
-      ],
+      check: "lookalike",
+      signal: "danger",
+      points: 80,
+      reason: `This domain looks like ${real} but isn't.`,
+      evidence: { brand: real, edits: 1 },
+      ms: Date.now() - started,
     };
   },
 };
@@ -34,17 +41,23 @@ export const standinLookalike: Check = {
 export const standinRedFlags: Check = {
   id: "red_flags",
   timeoutMs: 500,
-  async run({ parsed }) {
-    if (!parsed.isIp) return { risk: 0, reasons: [] };
+  async check(url) {
+    const started = Date.now();
+    if (!parseUrl(url).isIp) {
+      return {
+        check: "red_flags",
+        signal: "ok",
+        points: 0,
+        reason: null,
+        ms: Date.now() - started,
+      };
+    }
     return {
-      risk: 0.5,
-      reasons: [
-        {
-          checkId: "red_flags",
-          text: "This page uses a bare number address instead of a name.",
-          severity: "warn",
-        },
-      ],
+      check: "red_flags",
+      signal: "warn",
+      points: 40,
+      reason: "This page uses a bare number address instead of a name.",
+      ms: Date.now() - started,
     };
   },
 };

@@ -13,7 +13,6 @@
   "dependencies": {
     "@sentry-ext/contracts": "workspace:*",
     "@sentry-ext/core": "workspace:*",
-    "@sentry-ext/url-parser": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

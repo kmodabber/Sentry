@@ -10,6 +10,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@sentry-ext/contracts": "workspace:*"
+    "@sentry-ext/contracts": "workspace:*",
+    "@sentry-ext/url-parser": "workspace:*"
   }
 }

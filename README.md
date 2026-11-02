@@ -29,8 +29,8 @@ Python: see `ml/README.md`.
 ```
 apps/extension      WXT extension: popup, background (Mo, Ethan Ung)
 apps/worker         Cloudflare Worker: feed proxy, keys as secrets (Mo)
-packages/contracts  C1 to C4 TypeScript types (everyone reads, Mo owns)
-packages/core       pipeline, scorer, checks (Mo, Brandon)
+packages/contracts  C1 to C3 TypeScript types, then C4 to C6 (everyone reads, Mo owns)
+packages/core       pipeline, scorer and scoring.json, checks (Mo, Brandon)
 packages/url-parser tldts wrapper and parsing tests (Brandon)
 packages/features   features shared with the in-browser model (Ethan Rajack)
 ml/                 Python data, training, evaluation (Ethan Rajack)

@@ -35,9 +35,6 @@ importers:
       '@sentry-ext/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@sentry-ext/url-parser':
-        specifier: workspace:*
-        version: link:../../packages/url-parser
       react:
         specifier: ^19.0.0
         version: 19.3.1
@@ -78,6 +75,9 @@ importers:
       '@sentry-ext/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@sentry-ext/url-parser':
+        specifier: workspace:*
+        version: link:../url-parser
 
   packages/features: {}
 
