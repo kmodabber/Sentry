@@ -1,0 +1,51 @@
+fake,real,trick
+paypa1.com,paypal.com,digit for letter
+paypall.com,paypal.com,extra letter
+peypal.com,paypal.com,changed letter
+rnicrosoft.com,microsoft.com,rn looks like m
+micros0ft.com,microsoft.com,zero for o
+microsft.com,microsoft.com,missing letter
+g00gle.com,google.com,zeros for o
+googel.com,google.com,swapped letters
+arnazon.com,amazon.com,rn looks like m
+amaz0n.com,amazon.com,zero for o
+app1e.com,apple.com,digit for l
+netfl1x.com,netflix.com,digit for i
+linkdin.com,linkedin.com,missing letter
+faceb00k.com,facebook.com,zeros for o
+adobee.com,adobe.com,extra letter
+lnterac.ca,interac.ca,L for i
+interak.ca,interac.ca,k for c
+rbcroya1bank.com,rbcroyalbank.com,digit for l
+tdcanadatrust.co,tdcanadatrust.com,wrong ending
+scotiabnk.com,scotiabank.com,missing letter
+bm0.com,bmo.com,zero for o
+desjardlns.com,desjardins.com,l for i
+r0gers.com,rogers.com,zero for o
+te1us.com,telus.com,digit for l
+canadapost.co,canadapost.ca,wrong ending
+rbc-royalbank.com,rbcroyalbank.com,hyphen added
+td-canadatrust.com,tdcanadatrust.com,hyphen added
+interac-etransfer.com,interac.ca,brand plus word
+paypal-secure.com,paypal.com,brand plus word
+microsoft-support.net,microsoft.com,brand plus word
+amazon-orders.com,amazon.com,brand plus word
+apple-id-verify.com,apple.com,brand plus word
+canadapost-tracking.com,canadapost.ca,brand plus word
+cra-refund.ca,canada.ca,brand plus word
+netflix-billing.com,netflix.com,brand plus word
+interac.etransfer-refund.com,interac.ca,brand in subdomain
+paypal.com.secure-login.net,paypal.com,brand in subdomain
+login.microsoft.com.verify-account.co,microsoft.com,brand in subdomain
+canada.ca.refund-claim.com,canada.ca,brand in subdomain
+rbc.com.signin-secure.net,rbc.com,brand in subdomain
+amazon.com-order-update.net,amazon.com,brand in subdomain
+apple.com.id-verify.info,apple.com,brand in subdomain
+netflix.account-billing.com,netflix.com,brand in subdomain
+td.com.online-banking-login.com,td.com,brand in subdomain
+scotiabank.com.verify-id.ca,scotiabank.com,brand in subdomain
+pаypal.com,paypal.com,Cyrillic a (disguised letter)
+аpple.com,apple.com,Cyrillic a (disguised letter)
+miсrosoft.com,microsoft.com,Cyrillic c (disguised letter)
+gооgle.com,google.com,Cyrillic o (disguised letter)
+аmazon.com,amazon.com,Cyrillic a (disguised letter)

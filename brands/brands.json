@@ -1,0 +1,153 @@
+[
+  {
+    "id": "microsoft",
+    "name": "Microsoft",
+    "domains": ["microsoft.com", "office.com", "live.com", "outlook.com", "microsoftonline.com"],
+    "keywords": ["microsoft", "office365", "outlook"],
+    "country": "US"
+  },
+  {
+    "id": "google",
+    "name": "Google",
+    "domains": ["google.com", "gmail.com"],
+    "keywords": ["google", "gmail"],
+    "country": "US"
+  },
+  {
+    "id": "amazon",
+    "name": "Amazon",
+    "domains": ["amazon.com", "amazon.ca"],
+    "keywords": ["amazon"],
+    "country": "US"
+  },
+  {
+    "id": "apple",
+    "name": "Apple",
+    "domains": ["apple.com", "icloud.com"],
+    "keywords": ["apple", "icloud", "appleid"],
+    "country": "US"
+  },
+  {
+    "id": "paypal",
+    "name": "PayPal",
+    "domains": ["paypal.com"],
+    "keywords": ["paypal"],
+    "country": "US"
+  },
+  {
+    "id": "interac",
+    "name": "Interac",
+    "domains": ["interac.ca"],
+    "keywords": ["interac", "etransfer", "e-transfer"],
+    "country": "CA"
+  },
+  {
+    "id": "rbc",
+    "name": "RBC Royal Bank",
+    "domains": ["rbc.com", "rbcroyalbank.com"],
+    "keywords": ["rbc", "royalbank"],
+    "country": "CA"
+  },
+  {
+    "id": "td",
+    "name": "TD Canada Trust",
+    "domains": ["td.com", "tdcanadatrust.com"],
+    "keywords": ["tdcanadatrust", "easyweb"],
+    "country": "CA"
+  },
+  {
+    "id": "cra",
+    "name": "Canada Revenue Agency",
+    "domains": ["canada.ca"],
+    "keywords": ["cra", "canadarevenue", "revenueagency"],
+    "country": "CA"
+  },
+  {
+    "id": "canadapost",
+    "name": "Canada Post",
+    "domains": ["canadapost-postescanada.ca", "canadapost.ca"],
+    "keywords": ["canadapost", "canada-post"],
+    "country": "CA"
+  },
+  {
+    "id": "adobe",
+    "name": "Adobe",
+    "domains": ["adobe.com"],
+    "keywords": ["adobe"],
+    "country": "US"
+  },
+  {
+    "id": "netflix",
+    "name": "Netflix",
+    "domains": ["netflix.com"],
+    "keywords": ["netflix"],
+    "country": "US"
+  },
+  {
+    "id": "linkedin",
+    "name": "LinkedIn",
+    "domains": ["linkedin.com"],
+    "keywords": ["linkedin"],
+    "country": "US"
+  },
+  {
+    "id": "meta",
+    "name": "Meta / Facebook",
+    "domains": ["facebook.com", "meta.com"],
+    "keywords": ["facebook", "meta"],
+    "country": "US"
+  },
+  { "id": "dhl", "name": "DHL", "domains": ["dhl.com"], "keywords": ["dhl"], "country": "DE" },
+  {
+    "id": "scotiabank",
+    "name": "Scotiabank",
+    "domains": ["scotiabank.com"],
+    "keywords": ["scotiabank", "scotia"],
+    "country": "CA"
+  },
+  { "id": "bmo", "name": "BMO", "domains": ["bmo.com"], "keywords": ["bmo"], "country": "CA" },
+  { "id": "cibc", "name": "CIBC", "domains": ["cibc.com"], "keywords": ["cibc"], "country": "CA" },
+  {
+    "id": "desjardins",
+    "name": "Desjardins",
+    "domains": ["desjardins.com"],
+    "keywords": ["desjardins"],
+    "country": "CA"
+  },
+  {
+    "id": "rogers",
+    "name": "Rogers",
+    "domains": ["rogers.com"],
+    "keywords": ["rogers"],
+    "country": "CA"
+  },
+  { "id": "bell", "name": "Bell", "domains": ["bell.ca"], "keywords": ["bell"], "country": "CA" },
+  {
+    "id": "telus",
+    "name": "Telus",
+    "domains": ["telus.com"],
+    "keywords": ["telus"],
+    "country": "CA"
+  },
+  {
+    "id": "serviceontario",
+    "name": "ServiceOntario",
+    "domains": ["ontario.ca"],
+    "keywords": ["serviceontario"],
+    "country": "CA"
+  },
+  {
+    "id": "servicecanada",
+    "name": "Service Canada",
+    "domains": ["canada.ca"],
+    "keywords": ["servicecanada"],
+    "country": "CA"
+  },
+  {
+    "id": "western",
+    "name": "Western University",
+    "domains": ["uwo.ca", "westernu.ca"],
+    "keywords": ["westernu", "uwo"],
+    "country": "CA"
+  }
+]
