@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { hostRoute, RATE_LIMIT_PER_MINUTE } from "@sentry-ext/contracts";
+import {
+  hostRoute,
+  RATE_LIMIT_PER_MINUTE,
+  type HostResponse,
+  type OpenPhishResponse,
+  type SafeBrowsingResponse,
+} from "@sentry-ext/contracts";
 import worker, { rateLimited } from "../src";
 
 let ip = 0;
@@ -67,5 +73,89 @@ describe("rateLimited", () => {
     expect(res.status).toBe(429);
     expect(res.headers.get("retry-after")).toBeTruthy();
     expect(await res.json()).toMatchObject({ error: "rate_limited" });
+  });
+});
+
+describe("fake mode (STY-108)", () => {
+  // Computed outside the Worker with `shasum -a 256`, so a wrong expression can't pass.
+  const PHISHING_HASH = "771MOrRPMn6xPKlCrXx/CrR+wmCk0LgFFoSgGy7zUiA=";
+  const PHISHING_PREFIX = "771MOg==";
+  const MALWARE_PREFIX = "WwuJdQ==";
+
+  const fake = (path: string, init: RequestInit = {}) =>
+    worker.fetch(
+      new Request(`https://worker.test${path}`, {
+        ...init,
+        headers: { "cf-connecting-ip": `10.1.0.${++ip}`, ...init.headers },
+      }),
+      { FAKE_UPSTREAMS: "true" },
+    );
+  const fakeSb = (prefixes: unknown) =>
+    fake("/v1/sb", { method: "POST", body: JSON.stringify({ prefixes }) });
+
+  it("is off unless FAKE_UPSTREAMS is exactly 'true'", async () => {
+    const res = await worker.fetch(
+      new Request("https://worker.test/v1/feeds/openphish", {
+        headers: { "cf-connecting-ip": "10.2.0.1" },
+      }),
+      { FAKE_UPSTREAMS: "1" },
+    );
+    expect(res.status).toBe(501);
+    expect(res.headers.get("x-phishclaw-fake")).toBeNull();
+  });
+
+  it("returns the full hash for Google's phishing test page", async () => {
+    const res = await fakeSb([PHISHING_PREFIX]);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-phishclaw-fake")).toBe("1");
+    const body = (await res.json()) as SafeBrowsingResponse;
+    expect(body.fullHashes).toHaveLength(1);
+    expect(body.fullHashes[0]).toMatchObject({
+      hash: PHISHING_HASH,
+      threatTypes: ["SOCIAL_ENGINEERING"],
+    });
+    expect(Date.parse(body.fullHashes[0]!.expiresAt)).toBeGreaterThan(Date.now());
+  });
+
+  it("returns only hashes matching the prefixes sent", async () => {
+    const both = (await (
+      await fakeSb([PHISHING_PREFIX, MALWARE_PREFIX])
+    ).json()) as SafeBrowsingResponse;
+    expect(both.fullHashes.map((h) => h.threatTypes[0]).sort()).toEqual([
+      "MALWARE",
+      "SOCIAL_ENGINEERING",
+    ]);
+    const none = (await (await fakeSb(["AAAAAA=="])).json()) as SafeBrowsingResponse;
+    expect(none).toEqual({ fullHashes: [] });
+  });
+
+  it("still validates the request", async () => {
+    expect((await fakeSb([])).status).toBe(400);
+    expect((await fakeSb(["not base64!"])).status).toBe(400);
+  });
+
+  it("answers each fake host case", async () => {
+    const get = async (h: string) => (await fake(hostRoute(h))).json() as Promise<HostResponse>;
+    expect((await get("urlhaus.phishclaw.test")).urlhaus).not.toBeNull();
+    expect((await get("rdap-down.phishclaw.test")).rdap).toBe(false);
+    const fresh = await get("NEW.phishclaw.test");
+    expect(Date.now() - Date.parse(fresh.registeredAt!)).toBeLessThan(7 * 24 * 60 * 60 * 1000);
+    expect(await get("example.com")).toEqual({
+      urlhaus: null,
+      registeredAt: "2010-01-01T00:00:00Z",
+      rdap: true,
+    } satisfies HostResponse);
+  });
+
+  it("returns 503 upstream_down for down.phishclaw.test", async () => {
+    const res = await fake(hostRoute("down.phishclaw.test"));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ error: "upstream_down" });
+  });
+
+  it("serves a fixed OpenPhish list", async () => {
+    const body = (await (await fake("/v1/feeds/openphish")).json()) as OpenPhishResponse;
+    expect(body.urls.length).toBeGreaterThan(0);
+    expect(Number.isNaN(Date.parse(body.updatedAt))).toBe(false);
   });
 });
