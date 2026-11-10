@@ -17,6 +17,7 @@ Usage (from the Sentry repo root, with ml/.venv active):
 from __future__ import annotations
 
 import csv
+import re
 import sys
 import urllib.request
 from collections import Counter
@@ -45,21 +46,21 @@ def domain_of(url: str) -> str | None:
     return host.removeprefix("www.")
 
 
+_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*$")
+_HTTP = re.compile(r"http", re.IGNORECASE)
+
+
 def defang(url: str) -> str:
-    """hxxp(s) for the scheme and [.] for every dot in the host, so the link can't be clicked."""
+    """Defang the whole string: every http -> hxxp and every . -> [.].
+
+    The whole URL is defanged, not just the scheme and host, so a URL embedded in the
+    path or query (e.g. a redirect ?u=https://...) can't be clicked either (doc 09).
+    """
     url = url.strip()
     scheme, sep, rest = url.partition("://")
-    if not sep:
-        scheme, rest = "", url
-    host_end = len(rest)
-    for ch in "/?#":
-        i = rest.find(ch)
-        if i != -1:
-            host_end = min(host_end, i)
-    host = rest[:host_end].replace(".", "[.]")
-    scheme = scheme.lower().replace("http", "hxxp")
-    prefix = f"{scheme}://" if sep else ""
-    return prefix + host + rest[host_end:]
+    if sep and _SCHEME.match(scheme):
+        url = scheme.lower() + sep + rest
+    return _HTTP.sub("hxxp", url).replace(".", "[.]")
 
 
 def fetch_feed(url: str = FEED_URL, timeout: int = 60) -> list[str]:
