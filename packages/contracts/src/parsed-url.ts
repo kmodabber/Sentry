@@ -13,4 +13,12 @@ export interface ParsedUrl {
   subdomain: string | null;
   isIp: boolean;
   path: string;
+  /** Explicit port as a number. Null when absent or the scheme's default (80 for http, 443 for https). */
+  port: number | null;
+  /** Text before the "@" in the authority, still percent-encoded, e.g. "user:pw". Null when absent. */
+  userInfo: string | null;
+  /** Hostname decoded from punycode, e.g. "bücher.de". Same as hostname when nothing is encoded. */
+  hostnameUnicode: string;
+  /** True when any label of the hostname is punycode (starts with "xn--"). */
+  isPunycode: boolean;
 }
