@@ -1,5 +1,6 @@
-import type { Check } from "@sentry-ext/contracts";
+import { SB_TEST_URLS, type Check } from "@sentry-ext/contracts";
 import { parseUrl } from "@sentry-ext/url-parser";
+import type { WorkerClient } from "./worker-client";
 
 // Stand-in checks: fake versions that return hard-coded answers in the C1 shape,
 // so the popup and pipeline work end to end before the real checks exist.
@@ -63,3 +64,64 @@ export const standinRedFlags: Check = {
 };
 
 export const STANDIN_CHECKS: Check[] = [standinLookalike, standinRedFlags];
+
+const SB_REASONS: Record<string, string> = {
+  SOCIAL_ENGINEERING: "Google Safe Browsing lists this page as a phishing site.",
+  MALWARE: "Google Safe Browsing lists this page as spreading malware.",
+  UNWANTED_SOFTWARE: "Google Safe Browsing lists this page as pushing unwanted software.",
+};
+
+async function sha256(text: string): Promise<Uint8Array> {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+}
+
+const toBase64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
+
+/**
+ * Pretends to be the Safe Browsing check (STY-108). Only Google's test pages are looked up,
+ * through the real Worker round trip: 4-byte prefix out, full hashes back, compared on-device.
+ * Every other URL is "ok" with no network call. STY-63 replaces this with real
+ * canonicalisation and hashing of every URL.
+ */
+export function createStandinSafeBrowsing(worker: WorkerClient): Check {
+  return {
+    id: "safebrowsing",
+    timeoutMs: 2000,
+    async check(url) {
+      const started = Date.now();
+      const ok = {
+        check: "safebrowsing" as const,
+        signal: "ok" as const,
+        points: 0,
+        reason: null,
+      };
+      let expression: string;
+      try {
+        const u = new URL(url);
+        expression = `${u.hostname.toLowerCase()}${u.pathname}`;
+      } catch {
+        return { ...ok, ms: Date.now() - started };
+      }
+      if (!SB_TEST_URLS.some((t) => t.expression === expression)) {
+        return { ...ok, ms: Date.now() - started };
+      }
+
+      const full = await sha256(expression);
+      const { fullHashes } = await worker.safeBrowsing([toBase64(full.slice(0, 4))]);
+      const hit = fullHashes.find((h) => h.hash === toBase64(full));
+      if (!hit) return { ...ok, ms: Date.now() - started };
+
+      const threat = hit.threatTypes[0] ?? "SOCIAL_ENGINEERING";
+      return {
+        check: "safebrowsing",
+        signal: "danger",
+        points: 100,
+        feedHit: true,
+        reason: SB_REASONS[threat] ?? "Google Safe Browsing lists this page as unsafe.",
+        evidence: { threatTypes: hit.threatTypes },
+        source: "google",
+        ms: Date.now() - started,
+      };
+    },
+  };
+}
