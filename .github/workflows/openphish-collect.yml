@@ -1,0 +1,72 @@
+# STY-113: collect fresh phishing URLs from the OpenPhish community feed for test set v1.
+#
+# Runs ml/scripts/collect_openphish.py every 3 hours on GitHub's servers.
+# The collected CSV (defanged URLs only) is kept between runs in the Actions cache,
+# never committed. The script logs counts only and never prints a URL (doc 09).
+#
+# To get the data out (for STY-92): Actions tab > "OpenPhish collection" > Run workflow,
+# tick "export", then download the "openphish-collected" artifact (kept 3 days).
+
+name: OpenPhish collection
+
+on:
+  schedule:
+    - cron: "17 */3 * * *" # every 3 hours at :17 UTC (off the hour, when GitHub is less busy)
+  workflow_dispatch:
+    inputs:
+      export:
+        description: "Upload the collected CSV as a downloadable artifact"
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - ".github/workflows/openphish-collect.yml"
+      - "ml/scripts/collect_openphish.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: openphish-collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore collected data from earlier runs
+        uses: actions/cache/restore@v4
+        with:
+          path: data/openphish
+          key: openphish-${{ github.run_id }}
+          restore-keys: openphish-
+
+      - name: Collect (counts only, no URLs printed)
+        run: python ml/scripts/collect_openphish.py
+
+      - name: Show totals
+        run: |
+          tail -1 data/openphish/collect.log
+          echo "rows (incl. header): $(wc -l < data/openphish/collected.csv)"
+
+      - name: Save collected data for the next run
+        if: github.event_name != 'pull_request'
+        uses: actions/cache/save@v4
+        with:
+          path: data/openphish
+          key: openphish-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Export CSV (manual runs only)
+        if: github.event_name == 'workflow_dispatch' && inputs.export
+        uses: actions/upload-artifact@v4
+        with:
+          name: openphish-collected
+          path: data/openphish/collected.csv
+          retention-days: 3
