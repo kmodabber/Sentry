@@ -5,9 +5,19 @@
  * Node export script (for training) both compute features in exactly this order, so
  * training and the browser cannot drift apart (doc 02, section 5).
  *
+ * Input (applies to every feature):
+ * - The input is the raw URL string as received (not URL.href or any normalised form),
+ *   cut to its first MAX_URL_LENGTH (1,000) characters with prepareUrl() BEFORE any feature
+ *   is computed. PhreshPhish benign URLs are cut at exactly 1,000 (STY-100), so cutting
+ *   everything the same way stops the cut-off leaking through any feature.
+ * - "Characters" means Unicode code points (Python len(); Array.from(s).length in JS).
+ * - Host, path and query come from parseUrl() in @sentry-ext/url-parser, run on the cut input.
+ *   The host is lower-cased, without the port and without IPv6 brackets.
+ *
  * Rules:
  * - Order is part of the contract. Add, remove, rename or reorder only via a decision in
  *   docs/decisions.md, then update SPEC_HASH (the spec test tells you the new value).
+ * - The word, file-type and symbol lists below are part of the fingerprint too.
  * - Every feature is a number. Flags are 0 or 1, and 1 always means "more suspicious".
  * - `reason` is the popup sentence shown when this feature pushes the score up. Plain words,
  *   no jargon, never "safe" (popup wording guide). Wording is NOT part of the fingerprint,
@@ -29,6 +39,15 @@ export interface FeatureSpec {
   definition: string;
   /** Plain-language popup sentence. */
   reason: string;
+}
+
+/** Every URL is cut to this many characters before any feature is computed. */
+export const MAX_URL_LENGTH = 1000;
+
+/** The feature input: the raw URL cut to MAX_URL_LENGTH code points. */
+export function prepareUrl(raw: string): string {
+  const chars = Array.from(raw);
+  return chars.length <= MAX_URL_LENGTH ? raw : chars.slice(0, MAX_URL_LENGTH).join("");
 }
 
 /** Words counted by `phishing_words` (doc 02, section 5). */
@@ -63,22 +82,21 @@ export const FEATURES: readonly FeatureSpec[] = [
   {
     name: "url_length",
     kind: "length",
-    cap: 1000,
-    definition:
-      "Characters in the full URL as given. Capped at 1,000 because PhreshPhish benign URLs are cut at exactly 1,000 (STY-100).",
+    definition: "Characters in the input (the raw URL after prepareUrl), so at most 1,000.",
     reason: "The address is unusually long.",
   },
   {
     name: "host_length",
     kind: "length",
-    definition: "Characters in the host name, without the port.",
+    definition:
+      "Characters in the host from parseUrl, lower-cased, without the port or IPv6 brackets.",
     reason: "The site name is unusually long.",
   },
   {
     name: "path_length",
     kind: "length",
     definition:
-      "Characters in the path (URL.pathname), from the first '/' after the host up to '?' or '#'. A bare '/' counts as 1; no path counts as 0.",
+      "Characters in the path from parseUrl: from the first '/' after the host up to '?' or '#'. A bare '/' counts as 1; no path counts as 0.",
     reason: "The part after the site name is unusually long.",
   },
   {
@@ -102,27 +120,26 @@ export const FEATURES: readonly FeatureSpec[] = [
   {
     name: "url_digits",
     kind: "count",
-    definition: "Number of characters 0-9 in the full URL (not capped).",
+    definition: "Number of characters 0-9 in the input.",
     reason: "The address has a lot of numbers in it.",
   },
   {
     name: "url_digit_ratio",
     kind: "ratio",
-    definition:
-      "url_digits divided by the full URL length before capping. 0 for an empty URL. Between 0 and 1.",
+    definition: "url_digits divided by url_length. 0 for an empty input. Between 0 and 1.",
     reason: "Much of the address is numbers.",
   },
   {
     name: "special_chars",
     kind: "count",
-    definition: "Number of characters in the full URL that are in SPECIAL_CHARS (@~%_=&!*+$,;|).",
+    definition: "Number of characters in the input that are in SPECIAL_CHARS (@~%_=&!*+$,;|).",
     reason: "The address has many unusual symbols.",
   },
   {
     name: "subdomain_depth",
     kind: "count",
     definition:
-      "Number of host labels before the registrable domain, using the shared URL parser (tldts). 'www' counts. 0 for an IP host or when there is no subdomain.",
+      "Number of dot-separated labels in the subdomain that parseUrl returns ('www' counts). 0 for an IP host or when there is no subdomain.",
     reason: "The real site name is hidden behind several layers.",
   },
   {
@@ -136,7 +153,7 @@ export const FEATURES: readonly FeatureSpec[] = [
     name: "is_ip_host",
     kind: "flag",
     definition:
-      "1 if the host is an IPv4 or IPv6 address, else 0. Note: PhreshPhish has no benign IP hosts (STY-100), so this will weigh heavily.",
+      "1 if the host is an IPv4 or IPv6 address, else 0. PhreshPhish has no benign IP hosts (STY-100), so this will weigh heavily: STY-115 reports results with and without it.",
     reason: "The address uses a number instead of a site name.",
   },
   {
@@ -148,7 +165,7 @@ export const FEATURES: readonly FeatureSpec[] = [
   {
     name: "has_at_sign",
     kind: "flag",
-    definition: "1 if '@' appears anywhere in the URL, else 0.",
+    definition: "1 if '@' appears anywhere in the input, else 0.",
     reason: "The address contains an @ sign, which can hide the real site.",
   },
   {
@@ -179,7 +196,7 @@ export const FEATURES: readonly FeatureSpec[] = [
     name: "phishing_words",
     kind: "count",
     definition:
-      "Number of distinct words from PHISHING_WORDS that appear in the lower-cased host, path and query.",
+      "Number of distinct words from PHISHING_WORDS that appear as a substring of the lower-cased host + path + query (so 'mylogin' and 'logins' both count 'login'). 0 to 7.",
     reason: "The address uses words that scams often use, like 'login' or 'verify'.",
   },
   {
@@ -193,28 +210,60 @@ export const FEATURES: readonly FeatureSpec[] = [
 
 export const FEATURE_NAMES: readonly string[] = FEATURES.map((f) => f.name);
 
+/** The lookup values that change feature numbers; all are part of the fingerprint. */
+export const SPEC_LISTS = {
+  maxUrlLength: MAX_URL_LENGTH,
+  phishingWords: PHISHING_WORDS,
+  riskyFileTypes: RISKY_FILE_TYPES,
+  specialChars: SPECIAL_CHARS,
+};
+
+export type SpecLists = {
+  maxUrlLength: number;
+  phishingWords: readonly string[];
+  riskyFileTypes: readonly string[];
+  specialChars: string;
+};
+
 /**
- * The exact text that is hashed: one JSON array per feature, in order, holding only what
- * changes the numbers (name, kind, cap). Wording and definitions are not included.
+ * The exact text that is hashed, one compact JSON array per line:
+ *   ["max_url_length",1000]
+ *   ["phishing_words",["login",...]]
+ *   ["risky_file_types",["exe",...]]
+ *   ["special_chars","@~%_=&!*+$,;|"]
+ * then one line per feature, in order: [name, kind, cap or null].
+ * Wording and definitions are not included, so popup text can change without retraining.
+ * Python reproduces it with json.dumps(row, separators=(",", ":"), ensure_ascii=False).
  */
-export function canonicalSpec(features: readonly FeatureSpec[] = FEATURES): string {
-  return features.map((f) => JSON.stringify([f.name, f.kind, f.cap ?? null])).join("\n");
+export function canonicalSpec(
+  features: readonly FeatureSpec[] = FEATURES,
+  lists: SpecLists = SPEC_LISTS,
+): string {
+  const rows: unknown[] = [
+    ["max_url_length", lists.maxUrlLength],
+    ["phishing_words", lists.phishingWords],
+    ["risky_file_types", lists.riskyFileTypes],
+    ["special_chars", lists.specialChars],
+    ...features.map((f) => [f.name, f.kind, f.cap ?? null]),
+  ];
+  return rows.map((r) => JSON.stringify(r)).join("\n");
 }
 
 /** SHA-256 (hex) of canonicalSpec(). Works in the browser and in Node 20+. */
 export async function computeSpecHash(
   features: readonly FeatureSpec[] = FEATURES,
+  lists: SpecLists = SPEC_LISTS,
 ): Promise<string> {
-  const bytes = new TextEncoder().encode(canonicalSpec(features));
+  const bytes = new TextEncoder().encode(canonicalSpec(features, lists));
   const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /**
- * The fingerprint of FEATURES. Kept as a constant so the extension can check a model
+ * The fingerprint of FEATURES and SPEC_LISTS. Kept as a constant so the extension can check a model
  * without hashing at load time. The spec test fails if it no longer matches FEATURES.
  */
-export const SPEC_HASH = "ca67eece63e9cf0446e1083662f7aacb7d1689597d57165e95c4643b3544c9d5";
+export const SPEC_HASH = "6a5a0d406ecafaaf47be47d747cc1add70178f4809f7ce8f7b06f7b0c44efe78";
 
 /** Throws if a model was trained on a different feature list (doc 05, C5). */
 export function assertModelMatchesSpec(model: { specHash: string }): void {
