@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { highlightDomain } from "./domain-diff";
+import type { CheckResult } from "@sentry-ext/contracts";
+import { findBrandEvidence, highlightDomain, splitHost } from "./domain-diff";
 
 describe("highlightDomain", () => {
   it("highlights a single swapped character", () => {
@@ -23,6 +24,81 @@ describe("highlightDomain", () => {
       prefix: "paypal.com",
       tricky: "",
       suffix: "",
+    });
+  });
+});
+
+describe("splitHost", () => {
+  it("has no subdomain when host is the registrable domain", () => {
+    expect(splitHost("paypa1.com", "paypa1.com")).toEqual({ subdomain: "", rest: "paypa1.com" });
+  });
+
+  it("splits off a www. subdomain", () => {
+    expect(splitHost("www.paypa1.com", "paypa1.com")).toEqual({
+      subdomain: "www.",
+      rest: "paypa1.com",
+    });
+  });
+
+  it("splits off a login. subdomain", () => {
+    expect(splitHost("login.paypa1.com", "paypa1.com")).toEqual({
+      subdomain: "login.",
+      rest: "paypa1.com",
+    });
+  });
+
+  it("returns null for an empty registrable domain", () => {
+    expect(splitHost("paypa1.com", "")).toBeNull();
+  });
+
+  it("returns null when the registrable domain isn't a suffix of host", () => {
+    expect(splitHost("evil.com", "paypa1.com")).toBeNull();
+  });
+});
+
+function checkResult(over: Partial<CheckResult>): CheckResult {
+  return { check: "lookalike", signal: "ok", points: 0, reason: null, ms: 1, ...over };
+}
+
+describe("findBrandEvidence", () => {
+  it("ignores a passing check even if it carries brand evidence", () => {
+    const checks = [checkResult({ signal: "ok", evidence: { brand: "paypal.com" } })];
+    expect(findBrandEvidence(checks)).toBeUndefined();
+  });
+
+  it("uses evidence from a warn signal", () => {
+    const checks = [checkResult({ signal: "warn", evidence: { brand: "paypal.com" } })];
+    expect(findBrandEvidence(checks)).toBe("paypal.com");
+  });
+
+  it("uses evidence from a danger signal", () => {
+    const checks = [checkResult({ signal: "danger", evidence: { brand: "paypal.com" } })];
+    expect(findBrandEvidence(checks)).toBe("paypal.com");
+  });
+});
+
+describe("splitHost + highlightDomain together", () => {
+  it("highlights only the 1 for www.paypa1.com", () => {
+    const split = splitHost("www.paypa1.com", "paypa1.com");
+    expect(split).not.toBeNull();
+    const { subdomain, rest } = split!;
+    expect(subdomain).toBe("www.");
+    expect(highlightDomain(rest, "paypal.com")).toEqual({
+      prefix: "paypa",
+      tricky: "1",
+      suffix: ".com",
+    });
+  });
+
+  it("highlights only the 1 for login.paypa1.com", () => {
+    const split = splitHost("login.paypa1.com", "paypa1.com");
+    expect(split).not.toBeNull();
+    const { subdomain, rest } = split!;
+    expect(subdomain).toBe("login.");
+    expect(highlightDomain(rest, "paypal.com")).toEqual({
+      prefix: "paypa",
+      tricky: "1",
+      suffix: ".com",
     });
   });
 });

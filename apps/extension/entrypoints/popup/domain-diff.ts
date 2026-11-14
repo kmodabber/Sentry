@@ -1,10 +1,42 @@
 // STY-FR-32: splits a checked domain into the part it shares with the brand it's
 // imitating and the part that's tricky, so the popup can highlight the latter.
+import type { CheckResult } from "@sentry-ext/contracts";
 
 export interface DomainHighlight {
   prefix: string;
   tricky: string;
   suffix: string;
+}
+
+/**
+ * Peels the subdomain off `host`, leaving the registrable domain to diff against a brand.
+ * Returns null when `registrableDomain` is empty or isn't actually a suffix of `host`,
+ * so the caller can fall back to showing the host plain rather than diffing garbage.
+ */
+export function splitHost(
+  host: string,
+  registrableDomain: string,
+): { subdomain: string; rest: string } | null {
+  if (!registrableDomain) return null;
+  if (host === registrableDomain) return { subdomain: "", rest: registrableDomain };
+  if (host.endsWith(`.${registrableDomain}`)) {
+    return {
+      subdomain: host.slice(0, host.length - registrableDomain.length),
+      rest: registrableDomain,
+    };
+  }
+  return null;
+}
+
+/** Only a lookalike/homograph check that actually flagged something can drive a highlight. */
+export function findBrandEvidence(checks: CheckResult[]): string | undefined {
+  const flagged = checks.find(
+    (c) =>
+      (c.check === "lookalike" || c.check === "homograph") &&
+      (c.signal === "danger" || c.signal === "warn") &&
+      typeof c.evidence?.brand === "string",
+  );
+  return flagged?.evidence?.brand as string | undefined;
 }
 
 export function highlightDomain(host: string, brand: string): DomainHighlight {

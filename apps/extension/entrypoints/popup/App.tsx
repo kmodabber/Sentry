@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Verdict, VerdictLabel } from "@sentry-ext/contracts";
-import { highlightDomain } from "./domain-diff";
+import { findBrandEvidence, highlightDomain, splitHost } from "./domain-diff";
 
 // Popup v0 (Ethan Ung owns this). Wording follows the guide: plain words, never "safe" alone.
 const LABEL_TEXT: Record<VerdictLabel, string> = {
@@ -18,20 +18,17 @@ const LABEL_GLYPH: Record<VerdictLabel, string> = {
 
 /** STY-FR-32: the checked domain, with the part that imitates a brand highlighted. */
 function Domain({ verdict }: { verdict: Verdict }) {
-  const flagged = verdict.checks.find(
-    (c) =>
-      (c.check === "lookalike" || c.check === "homograph") && typeof c.evidence?.brand === "string",
-  );
-  if (!flagged) return <p className="domain">{verdict.host}</p>;
+  const brand = findBrandEvidence(verdict.checks);
+  const split = brand ? splitHost(verdict.host, verdict.registrableDomain) : null;
+  if (!brand || !split) return <p className="domain">{verdict.host}</p>;
 
-  const { prefix, tricky, suffix } = highlightDomain(
-    verdict.host,
-    flagged.evidence!.brand as string,
-  );
+  const { subdomain, rest } = split;
+  const { prefix, tricky, suffix } = highlightDomain(rest, brand);
   if (!tricky) return <p className="domain">{verdict.host}</p>;
 
   return (
     <p className="domain">
+      {subdomain}
       {prefix}
       <mark className="domain-tricky">{tricky}</mark>
       {suffix}
