@@ -89,6 +89,11 @@ export default function App() {
       {v.partial && (
         <p className="partial">Some checks didn't finish, so this result may be incomplete.</p>
       )}
+      {v.verdict === "likely_safe" && (
+        <p className="disclaimer">
+          No check is perfect. Think twice before entering passwords or payment details.
+        </p>
+      )}
     </main>
   );
 }

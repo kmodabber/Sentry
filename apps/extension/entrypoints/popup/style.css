@@ -68,6 +68,11 @@ body {
   font-size: 12px;
   color: #57606a;
 }
+.disclaimer {
+  font-size: 11px;
+  color: #57606a;
+  margin-top: 8px;
+}
 .attribution {
   display: block;
   font-size: 11px;
