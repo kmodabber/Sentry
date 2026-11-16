@@ -27,6 +27,24 @@ export function splitHost(
   return null;
 }
 
+/**
+ * Finds `brand` as a verbatim run inside `subdomain` (e.g. "paypal.com." contains
+ * "paypal.com" for `paypal.com.secure-login.net` -- the brand sitting in the subdomain,
+ * not the registrable domain, is the trick there).
+ */
+export function findBrandInSubdomain(
+  subdomain: string,
+  brand: string,
+): { before: string; match: string; after: string } | null {
+  const index = subdomain.indexOf(brand);
+  if (index === -1) return null;
+  return {
+    before: subdomain.slice(0, index),
+    match: brand,
+    after: subdomain.slice(index + brand.length),
+  };
+}
+
 /** Only a lookalike/homograph check that actually flagged something can drive a highlight. */
 export function findBrandEvidence(checks: CheckResult[]): string | undefined {
   const flagged = checks.find(

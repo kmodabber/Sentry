@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CheckResult } from "@sentry-ext/contracts";
-import { findBrandEvidence, highlightDomain, splitHost } from "./domain-diff";
+import { findBrandEvidence, findBrandInSubdomain, highlightDomain, splitHost } from "./domain-diff";
 
 describe("highlightDomain", () => {
   it("highlights a single swapped character", () => {
@@ -121,5 +121,23 @@ describe("splitHost + highlightDomain together", () => {
       { type: "changed", text: "1" },
       { type: "same", text: ".com" },
     ]);
+  });
+});
+
+describe("findBrandInSubdomain", () => {
+  it("finds the brand sitting in the subdomain, e.g. paypal.com.secure-login.net", () => {
+    expect(findBrandInSubdomain("paypal.com.", "paypal.com")).toEqual({
+      before: "",
+      match: "paypal.com",
+      after: ".",
+    });
+  });
+
+  it("returns null when the brand isn't in the subdomain at all", () => {
+    expect(findBrandInSubdomain("www.", "paypal.com")).toBeNull();
+  });
+
+  it("returns null for an empty subdomain", () => {
+    expect(findBrandInSubdomain("", "paypal.com")).toBeNull();
   });
 });

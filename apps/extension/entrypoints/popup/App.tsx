@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Verdict, VerdictLabel } from "@sentry-ext/contracts";
-import { findBrandEvidence, highlightDomain, splitHost } from "./domain-diff";
+import { findBrandEvidence, findBrandInSubdomain, highlightDomain, splitHost } from "./domain-diff";
 
 // Popup v0 (Ethan Ung owns this). Wording follows the guide: plain words, never "safe" alone.
 const LABEL_TEXT: Record<VerdictLabel, string> = {
@@ -28,6 +28,29 @@ function Domain({ verdict }: { verdict: Verdict }) {
   if (!brand || !split) return <p className="domain">{verdict.host}</p>;
 
   const { subdomain, rest } = split;
+
+  // The brand may be sitting verbatim in the subdomain, impersonating the real site
+  // (e.g. "paypal.com.secure-login.net") -- check that before diffing the registrable
+  // domain, since the registrable domain there is just an unrelated attacker domain,
+  // not a typo of the brand.
+  const inSubdomain = findBrandInSubdomain(subdomain, brand);
+  if (inSubdomain) {
+    return (
+      <p className="domain">
+        {inSubdomain.before}
+        <mark
+          className="domain-tricky"
+          aria-label={`"${brand}" here is not the real address`}
+          title={`"${brand}" here is not the real address`}
+        >
+          {inSubdomain.match}
+        </mark>
+        {inSubdomain.after}
+        {rest}
+      </p>
+    );
+  }
+
   const segments = highlightDomain(rest, brand);
   if (!segments.some((s) => s.type !== "same")) return <p className="domain">{verdict.host}</p>;
 
