@@ -2,11 +2,10 @@
 // imitating and the part that's tricky, so the popup can highlight the latter.
 import type { CheckResult } from "@sentry-ext/contracts";
 
-export interface DomainHighlight {
-  prefix: string;
-  tricky: string;
-  suffix: string;
-}
+export type DomainSegment =
+  | { type: "same"; text: string }
+  | { type: "changed"; text: string }
+  | { type: "missing"; letter: string };
 
 /**
  * Peels the subdomain off `host`, leaving the registrable domain to diff against a brand.
@@ -39,7 +38,12 @@ export function findBrandEvidence(checks: CheckResult[]): string | undefined {
   return flagged?.evidence?.brand as string | undefined;
 }
 
-export function highlightDomain(host: string, brand: string): DomainHighlight {
+/**
+ * Diffs `host` against `brand`, returning the parts that are the same, a substituted/
+ * swapped-in run of characters ("changed"), or a single letter `brand` has that `host`
+ * doesn't ("missing" — e.g. "microsft.com" vs "microsoft.com" is missing the "o").
+ */
+export function highlightDomain(host: string, brand: string): DomainSegment[] {
   const max = Math.min(host.length, brand.length);
 
   let prefixLen = 0;
@@ -53,9 +57,18 @@ export function highlightDomain(host: string, brand: string): DomainHighlight {
     suffixLen++;
   }
 
-  return {
-    prefix: host.slice(0, prefixLen),
-    tricky: host.slice(prefixLen, host.length - suffixLen),
-    suffix: host.slice(host.length - suffixLen),
-  };
+  const prefix = host.slice(0, prefixLen);
+  const suffix = host.slice(host.length - suffixLen);
+  const hostMid = host.slice(prefixLen, host.length - suffixLen);
+  const brandMid = brand.slice(prefixLen, brand.length - suffixLen);
+
+  const segments: DomainSegment[] = [];
+  if (prefix) segments.push({ type: "same", text: prefix });
+  if (hostMid) {
+    segments.push({ type: "changed", text: hostMid });
+  } else if (brandMid) {
+    segments.push({ type: "missing", letter: brandMid });
+  }
+  if (suffix) segments.push({ type: "same", text: suffix });
+  return segments;
 }

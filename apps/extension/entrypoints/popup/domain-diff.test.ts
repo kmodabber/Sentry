@@ -4,27 +4,48 @@ import { findBrandEvidence, highlightDomain, splitHost } from "./domain-diff";
 
 describe("highlightDomain", () => {
   it("highlights a single swapped character", () => {
-    expect(highlightDomain("paypa1.com", "paypal.com")).toEqual({
-      prefix: "paypa",
-      tricky: "1",
-      suffix: ".com",
-    });
+    expect(highlightDomain("paypa1.com", "paypal.com")).toEqual([
+      { type: "same", text: "paypa" },
+      { type: "changed", text: "1" },
+      { type: "same", text: ".com" },
+    ]);
   });
 
   it("highlights a swapped-in pair of characters", () => {
-    expect(highlightDomain("rnicrosoft.com", "microsoft.com")).toEqual({
-      prefix: "",
-      tricky: "rn",
-      suffix: "icrosoft.com",
-    });
+    expect(highlightDomain("rnicrosoft.com", "microsoft.com")).toEqual([
+      { type: "changed", text: "rn" },
+      { type: "same", text: "icrosoft.com" },
+    ]);
   });
 
   it("highlights nothing for an exact match", () => {
-    expect(highlightDomain("paypal.com", "paypal.com")).toEqual({
-      prefix: "paypal.com",
-      tricky: "",
-      suffix: "",
-    });
+    expect(highlightDomain("paypal.com", "paypal.com")).toEqual([
+      { type: "same", text: "paypal.com" },
+    ]);
+  });
+
+  it("marks a missing letter in the middle", () => {
+    expect(highlightDomain("microsft.com", "microsoft.com")).toEqual([
+      { type: "same", text: "micros" },
+      { type: "missing", letter: "o" },
+      { type: "same", text: "ft.com" },
+    ]);
+  });
+
+  it("marks a missing letter for linkdin.com vs linkedin.com", () => {
+    expect(highlightDomain("linkdin.com", "linkedin.com")).toEqual([
+      { type: "same", text: "link" },
+      { type: "missing", letter: "e" },
+      { type: "same", text: "din.com" },
+    ]);
+  });
+
+  it("marks a missing letter for scotiabnk.com vs scotiabank.com", () => {
+    expect(highlightDomain("scotiabnk.com", "scotiabank.com")).toEqual([
+      { type: "same", text: "scotiab" },
+      { type: "missing", letter: "a" },
+      { type: "same", text: "nk.com" },
+    ]);
   });
 });
 
@@ -83,11 +104,11 @@ describe("splitHost + highlightDomain together", () => {
     expect(split).not.toBeNull();
     const { subdomain, rest } = split!;
     expect(subdomain).toBe("www.");
-    expect(highlightDomain(rest, "paypal.com")).toEqual({
-      prefix: "paypa",
-      tricky: "1",
-      suffix: ".com",
-    });
+    expect(highlightDomain(rest, "paypal.com")).toEqual([
+      { type: "same", text: "paypa" },
+      { type: "changed", text: "1" },
+      { type: "same", text: ".com" },
+    ]);
   });
 
   it("highlights only the 1 for login.paypa1.com", () => {
@@ -95,10 +116,10 @@ describe("splitHost + highlightDomain together", () => {
     expect(split).not.toBeNull();
     const { subdomain, rest } = split!;
     expect(subdomain).toBe("login.");
-    expect(highlightDomain(rest, "paypal.com")).toEqual({
-      prefix: "paypa",
-      tricky: "1",
-      suffix: ".com",
-    });
+    expect(highlightDomain(rest, "paypal.com")).toEqual([
+      { type: "same", text: "paypa" },
+      { type: "changed", text: "1" },
+      { type: "same", text: ".com" },
+    ]);
   });
 });

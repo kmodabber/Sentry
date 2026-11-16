@@ -60,6 +60,11 @@ body {
   font-weight: 700;
   text-decoration: underline;
 }
+.domain-missing {
+  text-decoration: none;
+  padding: 0 1px;
+  cursor: help;
+}
 .score {
   color: #57606a;
   margin: 0 0 12px;

@@ -16,6 +16,11 @@ const LABEL_GLYPH: Record<VerdictLabel, string> = {
   dangerous: "✕",
 };
 
+/** STY-85: the Stage 2 plan's disclaimer, shown only under the likely-safe verdict. */
+export function showsNoCheckIsPerfect(verdict: VerdictLabel): boolean {
+  return verdict === "likely_safe";
+}
+
 /** STY-FR-32: the checked domain, with the part that imitates a brand highlighted. */
 function Domain({ verdict }: { verdict: Verdict }) {
   const brand = findBrandEvidence(verdict.checks);
@@ -23,15 +28,32 @@ function Domain({ verdict }: { verdict: Verdict }) {
   if (!brand || !split) return <p className="domain">{verdict.host}</p>;
 
   const { subdomain, rest } = split;
-  const { prefix, tricky, suffix } = highlightDomain(rest, brand);
-  if (!tricky) return <p className="domain">{verdict.host}</p>;
+  const segments = highlightDomain(rest, brand);
+  if (!segments.some((s) => s.type !== "same")) return <p className="domain">{verdict.host}</p>;
 
   return (
     <p className="domain">
       {subdomain}
-      {prefix}
-      <mark className="domain-tricky">{tricky}</mark>
-      {suffix}
+      {segments.map((s, i) => {
+        if (s.type === "same") return <span key={i}>{s.text}</span>;
+        if (s.type === "changed") {
+          return (
+            <mark key={i} className="domain-tricky">
+              {s.text}
+            </mark>
+          );
+        }
+        return (
+          <mark
+            key={i}
+            className="domain-tricky domain-missing"
+            aria-label={`missing letter '${s.letter}'`}
+            title={`missing letter '${s.letter}'`}
+          >
+            ‸
+          </mark>
+        );
+      })}
     </p>
   );
 }
@@ -89,11 +111,7 @@ export default function App() {
       {v.partial && (
         <p className="partial">Some checks didn't finish, so this result may be incomplete.</p>
       )}
-      {v.verdict === "likely_safe" && (
-        <p className="disclaimer">
-          No check is perfect. Think twice before entering passwords or payment details.
-        </p>
-      )}
+      {showsNoCheckIsPerfect(v.verdict) && <p className="disclaimer">No check is perfect.</p>}
     </main>
   );
 }
