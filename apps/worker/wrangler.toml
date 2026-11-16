@@ -2,10 +2,21 @@ name = "phishclaw-worker"
 main = "src/index.ts"
 compatibility_date = "2025-01-01"
 
-# Keys are Worker secrets, never in git:
+# Keys are Worker secrets, never in git and never in the extension:
 #   pnpm wrangler secret put SAFE_BROWSING_KEY
 #   pnpm wrangler secret put ABUSECH_KEY
 # For local runs put test values in .dev.vars (gitignored).
 
+# No request logging (STY-FR-02): request paths carry hostnames, request bodies carry hashes.
+# Keep both off, and don't run `wrangler tail` against production.
+logpush = false
+
 [observability]
-enabled = false # no request logging (STY-FR-02)
+enabled = false
+
+# 60 requests a minute per IP across all isolates (C3 RATE_LIMIT_PER_MINUTE).
+# The in-memory limiter in src/index.ts gives the exact Retry-After; this one backs it up.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 60, period = 60 }
