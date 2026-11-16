@@ -4,15 +4,15 @@ Typed agreements at the seams between people's code, numbered as in doc 05 secti
 types are the source of truth: `packages/contracts/src/`. Change a contract only through a
 `contract/` PR that Mo approves and that adds a dated line to `docs/decisions.md`.
 
-| Contract                | Seam                                 | File                             | Owner            | Due              |
-| ----------------------- | ------------------------------------ | -------------------------------- | ---------------- | ---------------- |
-| C1 Check result         | each check -> pipeline               | `c1-check.ts`                    | Mo               | v0 Wed Oct 28    |
-| C2 Verdict              | scorer -> popup and history          | `c2-verdict.ts`                  | Brandon          | v0 Wed Oct 28    |
-| C3 Worker API           | extension -> Cloudflare Worker       | `c3-worker.ts`, `c3-fixtures.ts` | Mo               | v0 Wed Oct 28    |
-| C4 Brand list           | `brands/brands.json` -> brand checks | `c4-brand.ts`                    | Brandon          | start of Stage 2 |
-| C5 Feature spec, model  | features -> model evaluator          | not yet                          | Ethan Rajack, Mo | start of Stage 2 |
-| C6 Test set             | `eval/testset_v*.csv` -> evaluation  | not yet                          | Ethan Rajack     | start of Stage 2 |
-| Parsed URL (unnumbered) | parser -> checks and features        | `parsed-url.ts`                  | Brandon          | n/a              |
+| Contract                | Seam                                 | File                                  | Owner            | Due              |
+| ----------------------- | ------------------------------------ | ------------------------------------- | ---------------- | ---------------- |
+| C1 Check result         | each check -> pipeline               | `c1-check.ts`                         | Mo               | v0 Wed Oct 28    |
+| C2 Verdict              | scorer -> popup and history          | `c2-verdict.ts`                       | Brandon          | v0 Wed Oct 28    |
+| C3 Worker API           | extension -> Cloudflare Worker       | `c3-worker.ts`, `c3-fixtures.ts`      | Mo               | v0 Wed Oct 28    |
+| C4 Brand list           | `brands/brands.json` -> brand checks | `c4-brand.ts`                         | Brandon          | start of Stage 2 |
+| C5 Feature spec, model  | features -> model evaluator          | `features/src/spec.ts`, `c5-model.ts` | Ethan Rajack, Mo | v0 Fri Nov 13    |
+| C6 Test set             | `eval/testset_v*.csv` -> evaluation  | not yet                               | Ethan Rajack     | start of Stage 2 |
+| Parsed URL (unnumbered) | parser -> checks and features        | `parsed-url.ts`                       | Brandon          | n/a              |
 
 ## Rules that the contracts encode
 
