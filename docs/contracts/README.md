@@ -24,6 +24,9 @@ types are the source of truth: `packages/contracts/src/`. Change a contract only
 - **Least data.** The Worker gets hash prefixes (`POST /v1/sb`) or a hostname
   (`GET /v1/host/{hostname}`), never a full URL. It rejects anything that isn't a hostname.
 - **Configuration over code.** Scorer thresholds live in `packages/core/src/scoring.json`.
+- **Keys live in the Worker.** `SAFE_BROWSING_KEY` and `ABUSECH_KEY` are Worker secrets. The
+  extension never holds a key, and the Worker never logs (no console output, observability and
+  logpush off), so no hostname or hash reaches a log.
 - **Fake upstreams for local work.** `pnpm worker:fake` answers every C3 route with fixed data
   (Google's test pages, `*.phishclaw.test` hosts) and marks replies `x-phishclaw-fake: 1`.
 - **Google attribution.** A reason with `source: "google"` shows "Advisory provided by Google".
