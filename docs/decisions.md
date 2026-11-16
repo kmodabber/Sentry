@@ -2,6 +2,7 @@
 
 One line per contract or design change, newest first: `date · what · who`.
 
+- 2026-11-15 · Worker calls the real upstreams with keys held only as Worker secrets: Safe Browsing v4 fullHashes:find, URLhaus host lookup, RDAP by registrable domain, the OpenPhish public feed. URLhaus failing answers 503 (never a silent "not listed"); RDAP failing answers rdap: false; RDAP 404 answers rdap: true with registeredAt null. 60/min enforced per isolate and by a Cloudflare rate limit binding. C3 types unchanged (STY-62) · Mo
 - 2026-11-09 · C3 adds c3-fixtures.ts: SB_TEST_URLS lists Google's three Safe Browsing test pages, shared by the fake Worker, the stand-in Safe Browsing check and STY-63's tests; C3 types unchanged (STY-108) · Mo
 - 2026-11-09 · Worker fake mode: FAKE_UPSTREAMS=true (pnpm worker:fake) serves fixed C3 answers marked x-phishclaw-fake; off by default and never set in production (STY-108) · Mo
 - 2026-11-09 · Project renamed PhishClaw; the Worker is named phishclaw-worker before its first deploy; the full repo rename is a separate PR · Mo

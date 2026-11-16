@@ -21,6 +21,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - name: No API keys in the repo
+        run: "! git grep -nE 'AIza[0-9A-Za-z_-]{35}'"
       - run: pnpm typecheck
       - run: pnpm test
 
