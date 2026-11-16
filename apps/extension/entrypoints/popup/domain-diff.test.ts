@@ -47,6 +47,13 @@ describe("highlightDomain", () => {
       { type: "same", text: "nk.com" },
     ]);
   });
+
+  it("marks a missing letter at the very end for tdcanadatrust.co vs .com", () => {
+    expect(highlightDomain("tdcanadatrust.co", "tdcanadatrust.com")).toEqual([
+      { type: "same", text: "tdcanadatrust.co" },
+      { type: "missing", letter: "m" },
+    ]);
+  });
 });
 
 describe("splitHost", () => {
