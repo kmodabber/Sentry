@@ -9,6 +9,7 @@ import {
   canonicalSpec,
   computeSpecHash,
   prepareUrl,
+  stripIpv6Brackets,
 } from "../src/spec";
 
 describe("C5 feature spec", () => {
@@ -31,16 +32,30 @@ describe("C5 feature spec", () => {
     }
   });
 
-  it("cuts every URL to 1,000 characters before features (STY-100)", () => {
+  it("normalises like Chrome's tab.url before anything else", () => {
+    expect(prepareUrl("HTTPS://WWW.Example.COM")).toBe("https://www.example.com/");
+    expect(prepareUrl("https://example.com:443/a/../b")).toBe("https://example.com/b");
+    expect(prepareUrl("https://example.com/a b?x=é")).toBe("https://example.com/a%20b?x=%C3%A9");
+  });
+
+  it("returns null for URLs that won't parse or aren't http/https", () => {
+    expect(prepareUrl("example.com/login")).toBeNull();
+    expect(prepareUrl("not a url")).toBeNull();
+    expect(prepareUrl("chrome://settings")).toBeNull();
+    expect(prepareUrl("file:///etc/hosts")).toBeNull();
+  });
+
+  it("cuts every URL to 1,000 characters after normalising (STY-100)", () => {
     expect(MAX_URL_LENGTH).toBe(1000);
     const long = "https://example.com/" + "a".repeat(2000);
-    expect(Array.from(prepareUrl(long))).toHaveLength(1000);
+    expect(Array.from(prepareUrl(long) ?? "")).toHaveLength(1000);
     expect(prepareUrl("https://example.com/")).toBe("https://example.com/");
   });
 
-  it("counts characters as code points, not UTF-16 units", () => {
-    const emoji = "😀".repeat(1200); // 2 UTF-16 units each
-    expect(Array.from(prepareUrl(emoji))).toHaveLength(1000);
+  it("strips IPv6 brackets for host features (parseUrl keeps them)", () => {
+    expect(prepareUrl("http://[::1]:8080/x")).toBe("http://[::1]:8080/x");
+    expect(stripIpv6Brackets("[::1]")).toBe("::1");
+    expect(stripIpv6Brackets("example.com")).toBe("example.com");
   });
 
   it("SPEC_HASH matches the feature list", async () => {
@@ -63,6 +78,7 @@ describe("C5 feature spec", () => {
   it("the hash changes when any list or the length limit changes", async () => {
     const variants = [
       { ...SPEC_LISTS, maxUrlLength: 2000 },
+      { ...SPEC_LISTS, inputForm: "raw" },
       { ...SPEC_LISTS, phishingWords: [...SPEC_LISTS.phishingWords, "bank"] },
       { ...SPEC_LISTS, riskyFileTypes: [...SPEC_LISTS.riskyFileTypes, "iso"] },
       { ...SPEC_LISTS, specialChars: SPEC_LISTS.specialChars + "#" },
@@ -74,7 +90,7 @@ describe("C5 feature spec", () => {
 
   it("canonical text is compact JSON, one row per line (Python can reproduce it)", () => {
     const lines = canonicalSpec().split("\n");
-    expect(lines[0]).toBe('["max_url_length",1000]');
+    expect(lines[0]).toBe('["input","whatwg_href",1000]');
     expect(lines[4]).toBe('["url_length","length",null]');
     expect(lines).toHaveLength(4 + FEATURES.length);
   });

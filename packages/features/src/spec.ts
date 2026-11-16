@@ -6,13 +6,23 @@
  * training and the browser cannot drift apart (doc 02, section 5).
  *
  * Input (applies to every feature):
- * - The input is the raw URL string as received (not URL.href or any normalised form),
- *   cut to its first MAX_URL_LENGTH (1,000) characters with prepareUrl() BEFORE any feature
- *   is computed. PhreshPhish benign URLs are cut at exactly 1,000 (STY-100), so cutting
+ * - The input is prepareUrl(raw): the WHATWG-normalised URL (new URL(raw).href), cut to its
+ *   first MAX_URL_LENGTH (1,000) characters, BEFORE any feature is computed.
+ *   Why href: the extension only ever sees tab.url, which Chrome has already normalised
+ *   (lower-cased host, default port dropped, "/../" resolved, spaces and accents
+ *   percent-encoded). Training uses the same normalisation, so both sides see the same text.
+ *   Why the cut: PhreshPhish benign URLs are cut at exactly 1,000 (STY-100), so cutting
  *   everything the same way stops the cut-off leaking through any feature.
- * - "Characters" means Unicode code points (Python len(); Array.from(s).length in JS).
- * - Host, path and query come from parseUrl() in @sentry-ext/url-parser, run on the cut input.
- *   The host is lower-cased, without the port and without IPv6 brackets.
+ * - prepareUrl returns null for a URL that won't parse (e.g. no scheme, "example.com/login")
+ *   or isn't http/https. Those rows get NO features: the Node export script drops them and
+ *   counts them in the shortcut report (STY-78); the extension shows no ML result for them.
+ *   We never guess a scheme, because the browser never sees a URL without one.
+ * - Training runs these definitions through the Node export script (the same TypeScript the
+ *   extension runs), so Python never re-implements the normalisation.
+ * - "Characters" means Unicode code points (Array.from(s).length in JS, len() in Python).
+ * - Host, path and query come from parseUrl() in @sentry-ext/url-parser, run on the cut
+ *   input, so they are measured after the cut too. parseUrl keeps IPv6 brackets on purpose;
+ *   features that use the host remove them themselves.
  *
  * Rules:
  * - Order is part of the contract. Add, remove, rename or reorder only via a decision in
@@ -44,10 +54,28 @@ export interface FeatureSpec {
 /** Every URL is cut to this many characters before any feature is computed. */
 export const MAX_URL_LENGTH = 1000;
 
-/** The feature input: the raw URL cut to MAX_URL_LENGTH code points. */
-export function prepareUrl(raw: string): string {
-  const chars = Array.from(raw);
-  return chars.length <= MAX_URL_LENGTH ? raw : chars.slice(0, MAX_URL_LENGTH).join("");
+/** How the input is normalised before the cut. Part of the fingerprint. */
+export const INPUT_FORM = "whatwg_href";
+
+/**
+ * The feature input: new URL(raw).href, cut to MAX_URL_LENGTH code points.
+ * Returns null if the URL won't parse or isn't http/https (no features for that URL).
+ */
+export function prepareUrl(raw: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  const chars = Array.from(url.href);
+  return chars.length <= MAX_URL_LENGTH ? url.href : chars.slice(0, MAX_URL_LENGTH).join("");
+}
+
+/** Remove the brackets parseUrl keeps around IPv6 hosts: "[::1]" -> "::1". */
+export function stripIpv6Brackets(host: string): string {
+  return host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
 }
 
 /** Words counted by `phishing_words` (doc 02, section 5). */
@@ -82,14 +110,15 @@ export const FEATURES: readonly FeatureSpec[] = [
   {
     name: "url_length",
     kind: "length",
-    definition: "Characters in the input (the raw URL after prepareUrl), so at most 1,000.",
+    definition:
+      "Characters in the input (prepareUrl: normalised href, cut to 1,000), so at most 1,000.",
     reason: "The address is unusually long.",
   },
   {
     name: "host_length",
     kind: "length",
     definition:
-      "Characters in the host from parseUrl, lower-cased, without the port or IPv6 brackets.",
+      "Characters in the host from parseUrl(input), measured after the cut, without the port, with IPv6 brackets removed by stripIpv6Brackets (parseUrl keeps them).",
     reason: "The site name is unusually long.",
   },
   {
@@ -212,6 +241,7 @@ export const FEATURE_NAMES: readonly string[] = FEATURES.map((f) => f.name);
 
 /** The lookup values that change feature numbers; all are part of the fingerprint. */
 export const SPEC_LISTS = {
+  inputForm: INPUT_FORM,
   maxUrlLength: MAX_URL_LENGTH,
   phishingWords: PHISHING_WORDS,
   riskyFileTypes: RISKY_FILE_TYPES,
@@ -219,6 +249,7 @@ export const SPEC_LISTS = {
 };
 
 export type SpecLists = {
+  inputForm: string;
   maxUrlLength: number;
   phishingWords: readonly string[];
   riskyFileTypes: readonly string[];
@@ -227,7 +258,7 @@ export type SpecLists = {
 
 /**
  * The exact text that is hashed, one compact JSON array per line:
- *   ["max_url_length",1000]
+ *   ["input","whatwg_href",1000]
  *   ["phishing_words",["login",...]]
  *   ["risky_file_types",["exe",...]]
  *   ["special_chars","@~%_=&!*+$,;|"]
@@ -240,7 +271,7 @@ export function canonicalSpec(
   lists: SpecLists = SPEC_LISTS,
 ): string {
   const rows: unknown[] = [
-    ["max_url_length", lists.maxUrlLength],
+    ["input", lists.inputForm, lists.maxUrlLength],
     ["phishing_words", lists.phishingWords],
     ["risky_file_types", lists.riskyFileTypes],
     ["special_chars", lists.specialChars],
@@ -263,7 +294,7 @@ export async function computeSpecHash(
  * The fingerprint of FEATURES and SPEC_LISTS. Kept as a constant so the extension can check a model
  * without hashing at load time. The spec test fails if it no longer matches FEATURES.
  */
-export const SPEC_HASH = "6a5a0d406ecafaaf47be47d747cc1add70178f4809f7ce8f7b06f7b0c44efe78";
+export const SPEC_HASH = "5c0a47b252f1850fdc9501110c6a3c5c05469e5e67b68314b7d1f05e6d14086c";
 
 /** Throws if a model was trained on a different feature list (doc 05, C5). */
 export function assertModelMatchesSpec(model: { specHash: string }): void {
