@@ -1,5 +1,5 @@
 import {
-  createStandinSafeBrowsing,
+  createSafeBrowsingCheck,
   createWorkerClient,
   runPipeline,
   STANDIN_CHECKS,
@@ -11,10 +11,15 @@ export type CheckPageMessage = { type: "check-page"; url: string };
 // No model ships yet; Ethan Rajack's model.json version replaces this in Stage 2.
 const MODEL_VERSION = "none";
 
-// Local fake Worker by default (pnpm worker:fake). Set WXT_WORKER_URL in apps/extension/.env
-// to point elsewhere; STY-62 sets the deployed Worker's URL for production builds.
-const WORKER_URL: string = import.meta.env.WXT_WORKER_URL ?? "http://localhost:8787";
-const CHECKS = [...STANDIN_CHECKS, createStandinSafeBrowsing(createWorkerClient(WORKER_URL))];
+// The deployed Worker (STY-62) holds the keys. Its URL isn't secret: it ships in every build.
+const DEPLOYED_WORKER_URL = "https://phishclaw-worker.phishclaw-wcs.workers.dev";
+// `pnpm dev` uses the local fake Worker (pnpm worker:fake); production builds use the deployed
+// one. Set WXT_WORKER_URL in apps/extension/.env to override either.
+const WORKER_URL: string =
+  import.meta.env.WXT_WORKER_URL ??
+  (import.meta.env.DEV ? "http://localhost:8787" : DEPLOYED_WORKER_URL);
+// One instance for the background's lifetime, so its Safe Browsing cache is shared by all checks.
+const CHECKS = [...STANDIN_CHECKS, createSafeBrowsingCheck(createWorkerClient(WORKER_URL))];
 
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((msg: CheckPageMessage, _sender, sendResponse) => {
@@ -26,7 +31,7 @@ export default defineBackground(() => {
 
 async function checkPage(url: string): Promise<Verdict | { error: string }> {
   try {
-    // Stand-in checks only. Real checks replace them during Stage 2.
+    // Safe Browsing is real (STY-63); the other checks are still stand-ins.
     return await runPipeline({
       url,
       checks: CHECKS,

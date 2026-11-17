@@ -2,6 +2,7 @@
 
 One line per contract or design change, newest first: `date · what · who`.
 
+- 2026-11-16 · Real Safe Browsing check replaces the stand-in: Google canonicalisation, up to 30 host/path expressions, only 4-byte prefixes sent, full hashes compared on-device. Listed hashes are cached until their expiresAt; "not listed" is cached 5 minutes because C3 carries no negative cache duration. Production builds call the deployed Worker; `pnpm dev` keeps the local fake (STY-63) · Mo
 - 2026-11-16 · Popup UI uses React through WXT's React module (@wxt-dev/module-react), not plain TypeScript as doc 02 section 1 says; it came with the first scaffold and the popup is small (STY-109) · Kam, Mo
 - 2026-11-16 · Python 3.12 everywhere: CI, the OpenPhish collector and ml/pyproject.toml, matching doc 02 (STY-109) · Kam
 - 2026-11-15 · C6 v0: eval/README.md documents the test set columns and rules (defanged URLs only, source openphish | manual, brand from brands.json, hard_benign is benign, max 3 phishing URLs per domain); ml/sentry_ml/testset.py checks them and runs in CI through pytest (STY-114) · Ethan Rajack
