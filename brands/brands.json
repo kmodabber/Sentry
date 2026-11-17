@@ -94,7 +94,7 @@
     "id": "meta",
     "name": "Meta / Facebook",
     "domains": ["facebook.com", "meta.com"],
-    "keywords": ["facebook", "meta"],
+    "keywords": ["facebook"],
     "country": "US"
   },
   { "id": "dhl", "name": "DHL", "domains": ["dhl.com"], "keywords": ["dhl"], "country": "DE" },
@@ -121,7 +121,7 @@
     "keywords": ["rogers"],
     "country": "CA"
   },
-  { "id": "bell", "name": "Bell", "domains": ["bell.ca"], "keywords": ["bell"], "country": "CA" },
+  { "id": "bell", "name": "Bell", "domains": ["bell.ca"], "keywords": [], "country": "CA" },
   {
     "id": "telus",
     "name": "Telus",
@@ -148,6 +148,286 @@
     "name": "Western University",
     "domains": ["uwo.ca", "westernu.ca"],
     "keywords": ["westernu", "uwo"],
+    "country": "CA"
+  },
+  {
+    "id": "instagram",
+    "name": "Instagram",
+    "domains": ["instagram.com"],
+    "keywords": ["instagram"],
+    "country": "US"
+  },
+  {
+    "id": "whatsapp",
+    "name": "WhatsApp",
+    "domains": ["whatsapp.com"],
+    "keywords": ["whatsapp"],
+    "country": "US"
+  },
+  {
+    "id": "twitter",
+    "name": "X (Twitter)",
+    "domains": ["x.com", "twitter.com"],
+    "keywords": ["twitter"],
+    "country": "US"
+  },
+  { "id": "ebay", "name": "eBay", "domains": ["ebay.com"], "keywords": ["ebay"], "country": "US" },
+  {
+    "id": "chase",
+    "name": "Chase Bank",
+    "domains": ["chase.com"],
+    "keywords": ["chase"],
+    "country": "US"
+  },
+  {
+    "id": "wellsfargo",
+    "name": "Wells Fargo",
+    "domains": ["wellsfargo.com"],
+    "keywords": ["wellsfargo"],
+    "country": "US"
+  },
+  {
+    "id": "bankofamerica",
+    "name": "Bank of America",
+    "domains": ["bankofamerica.com"],
+    "keywords": ["bankofamerica"],
+    "country": "US"
+  },
+  {
+    "id": "citibank",
+    "name": "Citibank",
+    "domains": ["citibank.com", "citi.com"],
+    "keywords": ["citibank", "citi"],
+    "country": "US"
+  },
+  {
+    "id": "walmart",
+    "name": "Walmart",
+    "domains": ["walmart.com"],
+    "keywords": ["walmart"],
+    "country": "US"
+  },
+  {
+    "id": "costco",
+    "name": "Costco",
+    "domains": ["costco.com", "costco.ca"],
+    "keywords": ["costco"],
+    "country": "US"
+  },
+  { "id": "visa", "name": "Visa", "domains": ["visa.com"], "keywords": ["visa"], "country": "US" },
+  {
+    "id": "mastercard",
+    "name": "Mastercard",
+    "domains": ["mastercard.com"],
+    "keywords": ["mastercard"],
+    "country": "US"
+  },
+  {
+    "id": "amex",
+    "name": "American Express",
+    "domains": ["americanexpress.com"],
+    "keywords": ["amex", "americanexpress"],
+    "country": "US"
+  },
+  {
+    "id": "coinbase",
+    "name": "Coinbase",
+    "domains": ["coinbase.com"],
+    "keywords": ["coinbase"],
+    "country": "US"
+  },
+  {
+    "id": "steam",
+    "name": "Steam",
+    "domains": ["steampowered.com"],
+    "keywords": ["steampowered"],
+    "country": "US"
+  },
+  {
+    "id": "spotify",
+    "name": "Spotify",
+    "domains": ["spotify.com"],
+    "keywords": ["spotify"],
+    "country": "SE"
+  },
+  {
+    "id": "disneyplus",
+    "name": "Disney+",
+    "domains": ["disneyplus.com", "disney.com"],
+    "keywords": ["disneyplus"],
+    "country": "US"
+  },
+  { "id": "usps", "name": "USPS", "domains": ["usps.com"], "keywords": ["usps"], "country": "US" },
+  {
+    "id": "fedex",
+    "name": "FedEx",
+    "domains": ["fedex.com"],
+    "keywords": ["fedex"],
+    "country": "US"
+  },
+  { "id": "ups", "name": "UPS", "domains": ["ups.com"], "keywords": [], "country": "US" },
+  { "id": "irs", "name": "IRS", "domains": ["irs.gov"], "keywords": ["irs"], "country": "US" },
+  {
+    "id": "dropbox",
+    "name": "Dropbox",
+    "domains": ["dropbox.com"],
+    "keywords": ["dropbox"],
+    "country": "US"
+  },
+  { "id": "zoom", "name": "Zoom", "domains": ["zoom.us"], "keywords": ["zoom"], "country": "US" },
+  {
+    "id": "yahoo",
+    "name": "Yahoo",
+    "domains": ["yahoo.com"],
+    "keywords": ["yahoo"],
+    "country": "US"
+  },
+  {
+    "id": "snapchat",
+    "name": "Snapchat",
+    "domains": ["snapchat.com"],
+    "keywords": ["snapchat"],
+    "country": "US"
+  },
+  {
+    "id": "tiktok",
+    "name": "TikTok",
+    "domains": ["tiktok.com"],
+    "keywords": ["tiktok"],
+    "country": "US"
+  },
+  { "id": "uber", "name": "Uber", "domains": ["uber.com"], "keywords": ["uber"], "country": "US" },
+  {
+    "id": "airbnb",
+    "name": "Airbnb",
+    "domains": ["airbnb.com"],
+    "keywords": ["airbnb"],
+    "country": "US"
+  },
+  {
+    "id": "wise",
+    "name": "Wise (TransferWise)",
+    "domains": ["wise.com"],
+    "keywords": ["transferwise"],
+    "country": "GB"
+  },
+  {
+    "id": "revolut",
+    "name": "Revolut",
+    "domains": ["revolut.com"],
+    "keywords": ["revolut"],
+    "country": "GB"
+  },
+  {
+    "id": "turbotax",
+    "name": "TurboTax (Intuit)",
+    "domains": ["turbotax.com", "intuit.com"],
+    "keywords": ["turbotax", "intuit"],
+    "country": "US"
+  },
+  {
+    "id": "docusign",
+    "name": "DocuSign",
+    "domains": ["docusign.com"],
+    "keywords": ["docusign"],
+    "country": "US"
+  },
+  {
+    "id": "indeed",
+    "name": "Indeed",
+    "domains": ["indeed.com"],
+    "keywords": [],
+    "country": "US"
+  },
+  {
+    "id": "shopify",
+    "name": "Shopify",
+    "domains": ["shopify.com"],
+    "keywords": ["shopify"],
+    "country": "CA"
+  },
+  {
+    "id": "aircanada",
+    "name": "Air Canada",
+    "domains": ["aircanada.com"],
+    "keywords": ["aircanada"],
+    "country": "CA"
+  },
+  {
+    "id": "westjet",
+    "name": "WestJet",
+    "domains": ["westjet.com"],
+    "keywords": ["westjet"],
+    "country": "CA"
+  },
+  {
+    "id": "canadiantire",
+    "name": "Canadian Tire",
+    "domains": ["canadiantire.ca"],
+    "keywords": ["canadiantire"],
+    "country": "CA"
+  },
+  {
+    "id": "petrocanada",
+    "name": "Petro-Canada",
+    "domains": ["petro-canada.ca"],
+    "keywords": ["petrocanada"],
+    "country": "CA"
+  },
+  {
+    "id": "sunlife",
+    "name": "Sun Life",
+    "domains": ["sunlife.ca", "sunlife.com"],
+    "keywords": ["sunlife"],
+    "country": "CA"
+  },
+  {
+    "id": "manulife",
+    "name": "Manulife",
+    "domains": ["manulife.ca"],
+    "keywords": ["manulife"],
+    "country": "CA"
+  },
+  {
+    "id": "nationalbank",
+    "name": "National Bank of Canada",
+    "domains": ["nbc.ca"],
+    "keywords": ["nationalbank", "bnc"],
+    "country": "CA"
+  },
+  {
+    "id": "simplii",
+    "name": "Simplii Financial",
+    "domains": ["simplii.com"],
+    "keywords": ["simplii"],
+    "country": "CA"
+  },
+  {
+    "id": "tangerine",
+    "name": "Tangerine",
+    "domains": ["tangerine.ca"],
+    "keywords": ["tangerine"],
+    "country": "CA"
+  },
+  {
+    "id": "eqbank",
+    "name": "EQ Bank",
+    "domains": ["eqbank.ca"],
+    "keywords": ["eqbank"],
+    "country": "CA"
+  },
+  {
+    "id": "equifax",
+    "name": "Equifax",
+    "domains": ["equifax.ca", "equifax.com"],
+    "keywords": ["equifax"],
+    "country": "CA"
+  },
+  {
+    "id": "transunion",
+    "name": "TransUnion",
+    "domains": ["transunion.ca", "transunion.com"],
+    "keywords": ["transunion"],
     "country": "CA"
   }
 ]
