@@ -24,9 +24,14 @@ const TIMEOUT_MS = 5000;
 const CLIENT_ID = "phishclaw";
 const CLIENT_VERSION = "0.0.1";
 
+/** Workers send no User-Agent by default, and rdap.org answers 403 without one. */
+export const USER_AGENT = `phishclaw-worker/${CLIENT_VERSION}`;
+
 async function upstream(url: string, init: RequestInit, what: string): Promise<Response> {
+  const headers = new Headers(init.headers);
+  headers.set("user-agent", USER_AGENT);
   try {
-    return await fetch(url, { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) });
+    return await fetch(url, { ...init, headers, signal: AbortSignal.timeout(TIMEOUT_MS) });
   } catch {
     // Drop the original error: its message can contain the URL, and with it the hostname.
     throw new UpstreamError(`${what} didn't answer.`);
