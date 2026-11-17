@@ -14,9 +14,14 @@ logpush = false
 [observability]
 enabled = false
 
-# 60 requests a minute per IP across all isolates (C3 RATE_LIMIT_PER_MINUTE).
-# The in-memory limiter in src/index.ts gives the exact Retry-After; this one backs it up.
-[[ratelimits]]
+# 60 requests a minute per IP (C3 RATE_LIMIT_PER_MINUTE), exact: one RateLimiter Durable
+# Object per client IP counts every request, whichever Cloudflare machine serves it.
+[[durable_objects.bindings]]
 name = "RATE_LIMITER"
-namespace_id = "1001"
-simple = { limit = 60, period = 60 }
+class_name = "RateLimiter"
+
+# SQLite-backed, which the Workers free plan allows. Never edit a migration that has shipped;
+# add a new tag instead.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiter"]
