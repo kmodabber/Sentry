@@ -2,6 +2,9 @@ import type { Check, CheckContext, CheckResult, Verdict } from "@sentry-ext/cont
 import { parseUrl } from "@sentry-ext/url-parser";
 import { scoreResults } from "./scorer";
 
+/** No check may run longer than this, whatever timeoutMs it asks for (FR-02, TC-02). */
+const MAX_CHECK_MS = 3000;
+
 export interface PipelineOptions {
   url: string;
   checks: Check[];
@@ -39,7 +42,7 @@ async function runCheck(check: Check, url: string, ctx: CheckContext): Promise<C
   const started = Date.now();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<"timeout">((resolve) => {
-    timer = setTimeout(() => resolve("timeout"), check.timeoutMs);
+    timer = setTimeout(() => resolve("timeout"), Math.min(check.timeoutMs, MAX_CHECK_MS));
   });
 
   try {
