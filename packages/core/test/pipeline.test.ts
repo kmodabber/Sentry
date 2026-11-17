@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Check, CheckResult } from "@sentry-ext/contracts";
 import { runPipeline, scoreResults, STANDIN_CHECKS } from "../src";
 
@@ -66,6 +66,45 @@ describe("runPipeline with stand-ins", () => {
     };
     const v = await run("https://example.com/", [liar]);
     expect(v.checks[0]).toMatchObject({ check: "homograph", points: 100 });
+  });
+
+  it("TC-02: caps every check at 3 s and keeps the others running", async () => {
+    vi.useFakeTimers();
+    try {
+      const crashes: Check = {
+        id: "page",
+        timeoutMs: 10_000,
+        check: async () => {
+          throw new Error("boom");
+        },
+      };
+      const hangs: Check = {
+        id: "ml",
+        timeoutMs: 10_000,
+        check: () => new Promise((resolve) => setTimeout(() => resolve(result({})), 5_000)),
+      };
+      const works: Check = {
+        id: "lookalike",
+        timeoutMs: 10_000,
+        check: async () =>
+          result({ signal: "danger", points: 50, reason: "looks like paypal.com" }),
+      };
+
+      const pending = run("https://example.com/", [crashes, hangs, works]);
+      await vi.advanceTimersByTimeAsync(5_000);
+      const v = await pending;
+
+      expect(v.checks.map((c) => [c.check, c.signal])).toEqual([
+        ["page", "error"],
+        ["ml", "error"],
+        ["lookalike", "danger"],
+      ]);
+      expect(v.checks[1]?.ms).toBe(3_000);
+      expect(v.missing).toEqual(["page", "ml"]);
+      expect(v.partial).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
