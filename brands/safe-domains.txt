@@ -1,0 +1,9 @@
+# Real, legitimate domains that sit one character away from a protected brand's domain in
+# brands.json, so a pure edit-distance lookalike check would otherwise flag them. The future
+# lookalike check (STY-68, FR-15) must exclude anything on this list before scoring a hit,
+# however it computes edit distance.
+#
+# domain,looks like,why it's actually safe
+cbc.ca,nbc.ca,CBC is a major Canadian broadcaster, unrelated to National Bank of Canada
+ubs.com,ups.com,UBS is a major Swiss bank, unrelated to UPS
+bmw.com,bmo.com,BMW is a car maker, unrelated to BMO
