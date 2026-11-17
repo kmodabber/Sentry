@@ -4,14 +4,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   hostRoute,
+  RATE_LIMIT_PER_MINUTE,
   type HostResponse,
   type OpenPhishResponse,
   type SafeBrowsingResponse,
   type WorkerError,
 } from "@sentry-ext/contracts";
-import worker, { type Env } from "../src";
+import worker, { RateLimiter, type Env } from "../src";
 import { clearMemoryCache } from "../src/cache";
-import { OPENPHISH_FEED, RDAP_ENDPOINT, SB_ENDPOINT, URLHAUS_ENDPOINT } from "../src/upstreams";
+import {
+  OPENPHISH_FEED,
+  RDAP_ENDPOINT,
+  SB_ENDPOINT,
+  URLHAUS_ENDPOINT,
+  USER_AGENT,
+} from "../src/upstreams";
 
 const SB_KEY = "sb-secret-123";
 const AH_KEY = "ah-secret-456";
@@ -138,6 +145,10 @@ describe("GET /v1/host/{hostname} (URLhaus + RDAP)", () => {
       rdap: true,
     } satisfies HostResponse);
     expect(rdapUrl).toBe(`${RDAP_ENDPOINT}paypa1.com`);
+    // rdap.org answers 403 to a request with no User-Agent.
+    for (const [, init] of fetchMock.mock.calls as [string, RequestInit][]) {
+      expect(new Headers(init.headers).get("user-agent")).toBe(USER_AGENT);
+    }
     expect(new Headers(urlhausInit!.headers).get("auth-key")).toBe(AH_KEY);
     expect(String(urlhausInit!.body)).toBe("host=login.paypa1.com");
   });
@@ -218,24 +229,58 @@ describe("GET /v1/feeds/openphish", () => {
   });
 });
 
-describe("rate limit binding", () => {
-  it("answers 429 when the shared limiter says no", async () => {
-    const env: Env = { ...KEYS, RATE_LIMITER: { limit: async () => ({ success: false }) } };
-    const res = await call("/v1/feeds/openphish", {}, env);
+describe("rate limit (RateLimiter Durable Object)", () => {
+  /** A stand-in namespace: one real RateLimiter per name, like Cloudflare's idFromName. */
+  function fakeNamespace() {
+    const objects = new Map<string, RateLimiter>();
+    const names: string[] = [];
+    const ns = {
+      idFromName: (name: string) => {
+        names.push(name);
+        return name;
+      },
+      get: (id: string) => {
+        if (!objects.has(id)) objects.set(id, new RateLimiter({} as DurableObjectState, {}));
+        const object = objects.get(id)!;
+        return { fetch: () => object.fetch() };
+      },
+    };
+    return { ns: ns as unknown as DurableObjectNamespace, names };
+  }
+
+  const fromIp = (ip: string, env: Env) =>
+    worker.fetch(
+      new Request("https://worker.test/nope", { headers: { "cf-connecting-ip": ip } }),
+      env,
+    );
+
+  it("allows exactly 60 a minute per IP, then answers 429 with Retry-After", async () => {
+    const { ns, names } = fakeNamespace();
+    const env: Env = { ...KEYS, RATE_LIMITER: ns };
+    for (let i = 0; i < RATE_LIMIT_PER_MINUTE; i++) {
+      expect((await fromIp("203.0.113.9", env)).status).toBe(404);
+    }
+    const res = await fromIp("203.0.113.9", env);
     expect(res.status).toBe(429);
-    expect(res.headers.get("retry-after")).toBe("60");
+    expect(Number(res.headers.get("retry-after"))).toBeGreaterThan(0);
+    expect(await res.json()).toMatchObject({ error: "rate_limited" });
+    // Another IP has its own count.
+    expect((await fromIp("203.0.113.10", env)).status).toBe(404);
+    expect(names).toContain("203.0.113.9");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keys the limiter by client IP", async () => {
-    const limit = vi.fn(async () => ({ success: true }));
-    handlers[OPENPHISH_FEED] = () => new Response("https://phish.phishclaw.test/a\n");
-    await worker.fetch(
-      new Request("https://worker.test/v1/feeds/openphish", {
-        headers: { "cf-connecting-ip": "203.0.113.9" },
+  it("falls back to counting in the isolate when the Durable Object fails", async () => {
+    const broken = {
+      idFromName: () => "x",
+      get: () => ({
+        fetch: async () => {
+          throw new Error("unavailable");
+        },
       }),
-      { ...KEYS, RATE_LIMITER: { limit } },
-    );
-    expect(limit).toHaveBeenCalledWith({ key: "203.0.113.9" });
+    } as unknown as DurableObjectNamespace;
+    const env: Env = { ...KEYS, RATE_LIMITER: broken };
+    for (let i = 0; i < RATE_LIMIT_PER_MINUTE; i++) await fromIp("198.51.100.1", env);
+    expect((await fromIp("198.51.100.1", env)).status).toBe(429);
   });
 });

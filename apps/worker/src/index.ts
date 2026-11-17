@@ -1,11 +1,11 @@
 import {
-  RATE_LIMIT_PER_MINUTE,
   SB_MAX_PREFIXES,
   WORKER_ROUTES,
   type WorkerError,
   type WorkerErrorCode,
 } from "@sentry-ext/contracts";
 import { FAKE_OPENPHISH, fakeHost, fakeSafeBrowsing } from "./fake";
+import { checkRateLimit } from "./rate-limit";
 import { fetchOpenPhish, lookupHost, lookupSafeBrowsing, UpstreamError } from "./upstreams";
 
 export interface Env {
@@ -15,8 +15,8 @@ export interface Env {
   ABUSECH_KEY?: string;
   /** "true" serves fixed answers instead of calling upstreams (STY-108). Local dev only. */
   FAKE_UPSTREAMS?: string;
-  /** Cloudflare rate limit binding, shared across isolates. See wrangler.toml. */
-  RATE_LIMITER?: RateLimit;
+  /** One RateLimiter Durable Object per client IP. See wrangler.toml. */
+  RATE_LIMITER?: DurableObjectNamespace;
 }
 
 const isFake = (env: Env) => env.FAKE_UPSTREAMS === "true";
@@ -43,29 +43,6 @@ function error(
 ): Response {
   const body: WorkerError = { error: code, message, ...(retryAfter && { retryAfter }) };
   return json(body, status, retryAfter ? { "retry-after": String(retryAfter) } : {});
-}
-
-// Per-isolate limiter: exact, and gives a precise retryAfter. The RATE_LIMITER binding
-// backs it up across isolates. Counts only, never stores paths.
-const WINDOW_MS = 60_000;
-const hits = new Map<string, { start: number; count: number }>();
-
-export function rateLimited(ip: string, now = Date.now()): number | null {
-  const entry = hits.get(ip);
-  if (!entry || now - entry.start >= WINDOW_MS) {
-    hits.set(ip, { start: now, count: 1 });
-    return null;
-  }
-  entry.count += 1;
-  if (entry.count <= RATE_LIMIT_PER_MINUTE) return null;
-  return Math.ceil((entry.start + WINDOW_MS - now) / 1000);
-}
-
-/** The binding has no reset time, so it answers with the whole window. Fails open. */
-async function sharedRateLimited(ip: string, env: Env): Promise<number | null> {
-  if (!env.RATE_LIMITER) return null;
-  const { success } = await env.RATE_LIMITER.limit({ key: ip }).catch(() => ({ success: true }));
-  return success ? null : WINDOW_MS / 1000;
 }
 
 // A hostname, not a URL: letters, digits, dots, hyphens, or a bracketed IPv6.
@@ -105,6 +82,9 @@ async function openPhish(env: Env): Promise<Response> {
   return json(await fetchOpenPhish());
 }
 
+// Wrangler needs the Durable Object class exported from the main module.
+export { RateLimiter, rateLimited } from "./rate-limit";
+
 // C3 Worker: holds the upstream keys so none ships in the extension.
 // With FAKE_UPSTREAMS=true (pnpm worker:fake) the upstreams answer from ./fake instead.
 // Nothing here logs (STY-FR-02): a log line could carry a hostname or a hash.
@@ -129,7 +109,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   if (request.method === "OPTIONS") return new Response(null, { headers: JSON_HEADERS });
 
   const ip = request.headers.get("cf-connecting-ip") ?? "local";
-  const retryAfter = rateLimited(ip) ?? (await sharedRateLimited(ip, env));
+  const retryAfter = await checkRateLimit(ip, env.RATE_LIMITER);
   if (retryAfter !== null) {
     return error("rate_limited", "Too many requests. Try again shortly.", 429, retryAfter);
   }
