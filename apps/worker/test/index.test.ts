@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   hostRoute,
   RATE_LIMIT_PER_MINUTE,
@@ -7,6 +7,26 @@ import {
   type SafeBrowsingResponse,
 } from "@sentry-ext/contracts";
 import worker, { rateLimited } from "../src";
+import { clearMemoryCache } from "../src/cache";
+
+// No test reaches the network: every upstream answers from this stub.
+const KEYS = { SAFE_BROWSING_KEY: "sb-test-key", ABUSECH_KEY: "ah-test-key" };
+beforeEach(() => {
+  clearMemoryCache();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("safebrowsing")) return Response.json({});
+      if (url.includes("urlhaus")) return Response.json({ query_status: "no_results" });
+      if (url.includes("rdap")) return new Response(null, { status: 404 });
+      return new Response("https://phish.phishclaw.test/a\n");
+    }),
+  );
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 let ip = 0;
 // A fresh IP per call so the rate limiter doesn't leak between tests.
@@ -16,7 +36,7 @@ const call = (path: string, init: RequestInit = {}) =>
       ...init,
       headers: { "cf-connecting-ip": `10.0.0.${++ip}`, ...init.headers },
     }),
-    {},
+    KEYS,
   );
 
 const postPrefixes = (prefixes: unknown) =>
@@ -30,7 +50,7 @@ describe("worker", () => {
   });
 
   it("accepts up to 30 base64 prefixes on /v1/sb", async () => {
-    expect((await postPrefixes(Array(30).fill("AAAAAA=="))).status).toBe(501);
+    expect((await postPrefixes(Array(30).fill("AAAAAA=="))).status).toBe(200);
     expect((await postPrefixes(Array(31).fill("AAAAAA=="))).status).toBe(400);
     expect((await postPrefixes(["not base64!"])).status).toBe(400);
     expect((await postPrefixes([])).status).toBe(400);
@@ -42,13 +62,13 @@ describe("worker", () => {
   });
 
   it("takes a hostname but never a full URL on /v1/host", async () => {
-    expect((await call(hostRoute("login.paypa1.com"))).status).toBe(501);
+    expect((await call(hostRoute("login.paypa1.com"))).status).toBe(200);
     expect((await call(hostRoute("https://paypa1.com/login"))).status).toBe(400);
     expect((await call(hostRoute("paypa1.com/login"))).status).toBe(400);
   });
 
   it("serves the OpenPhish route", async () => {
-    expect((await call("/v1/feeds/openphish")).status).toBe(501);
+    expect((await call("/v1/feeds/openphish")).status).toBe(200);
   });
 });
 
@@ -100,8 +120,9 @@ describe("fake mode (STY-108)", () => {
       }),
       { FAKE_UPSTREAMS: "1" },
     );
-    expect(res.status).toBe(501);
+    expect(res.status).toBe(200);
     expect(res.headers.get("x-phishclaw-fake")).toBeNull();
+    expect(fetch).toHaveBeenCalled();
   });
 
   it("returns the full hash for Google's phishing test page", async () => {

@@ -25,6 +25,19 @@ Try `https://paypa1.com` as a typed address in a test: the stand-in checks flag 
 
 Python: see `ml/README.md`.
 
+## Deploy the Worker
+
+The Worker holds every upstream key, so none ships in the extension. Set the secrets once:
+
+```
+cd apps/worker
+pnpm wrangler secret put SAFE_BROWSING_KEY
+pnpm wrangler secret put ABUSECH_KEY
+```
+
+Then run the **Deploy Worker** GitHub Action. Keep request logging off and don't run
+`wrangler tail` against production: request paths carry hostnames.
+
 ## Where things live
 
 ```

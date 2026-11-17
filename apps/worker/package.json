@@ -11,10 +11,11 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@sentry-ext/contracts": "workspace:*"
+    "@sentry-ext/contracts": "workspace:*",
+    "tldts": "^7.5.2"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261030.1",
-    "wrangler": "^4.156.0"
+    "@cloudflare/workers-types": "^5.20261113.1",
+    "wrangler": "^4.162.0"
   }
 }

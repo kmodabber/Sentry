@@ -11,7 +11,9 @@ import { toUnicode } from "./punycode";
  * - domain and publicSuffix use the ICANN list only, so "foo.github.io" has domain
  *   "github.io". Free-hosting platforms are handled by the red-flag lists, not here.
  * - IPv6 hosts keep their brackets, and IPv4 shorthand ("0x7f.1") is normalised by
- *   the URL parser before tldts sees it.
+ *   the URL parser before tldts sees it. Brackets are kept on purpose (it's still a
+ *   valid URL this way), so anything that wants a bracket-free host — host_length in
+ *   C5, for example — has to strip them itself.
  */
 export function parseUrl(input: string): ParsedUrl {
   const url = new URL(input);
