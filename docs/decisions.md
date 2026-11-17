@@ -2,6 +2,8 @@
 
 One line per contract or design change, newest first: `date · what · who`.
 
+- 2026-11-16 · Popup UI uses React through WXT's React module (@wxt-dev/module-react), not plain TypeScript as doc 02 section 1 says; it came with the first scaffold and the popup is small (STY-109) · Kam, Mo
+- 2026-11-16 · Python 3.12 everywhere: CI, the OpenPhish collector and ml/pyproject.toml, matching doc 02 (STY-109) · Kam
 - 2026-11-16 · Worker rate limit is exact: one RateLimiter Durable Object per client IP replaces the Cloudflare rate limit binding, which let 70 steady requests through on the deployed Worker; upstream calls send a phishclaw-worker User-Agent because rdap.org answers 403 without one (STY-62) · Mo
 - 2026-11-16 · C5 v0: packages/features/src/spec.ts lists 20 URL-only features in order; every feature uses prepareUrl(raw) = new URL(raw).href cut to 1,000 code points, the same text Chrome gives the extension (PhreshPhish benign URLs are truncated at 1,000, STY-100); URLs that won't parse or aren't http/https get no features and are counted by the export script; SPEC_HASH covers the input form, the length limit, the word/file-type/symbol lists and [name, kind, cap] per feature, wording excluded; model.json type in contracts/src/c5-model.ts (STY-112) · Ethan Rajack, Mo
 - 2026-11-15 · Worker calls the real upstreams with keys held only as Worker secrets: Safe Browsing v4 fullHashes:find, URLhaus host lookup, RDAP by registrable domain, the OpenPhish public feed. URLhaus failing answers 503 (never a silent "not listed"); RDAP failing answers rdap: false; RDAP 404 answers rdap: true with registeredAt null. 60/min enforced per isolate and by a Cloudflare rate limit binding. C3 types unchanged (STY-62) · Mo
