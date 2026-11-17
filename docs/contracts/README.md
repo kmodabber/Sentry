@@ -11,7 +11,7 @@ types are the source of truth: `packages/contracts/src/`. Change a contract only
 | C3 Worker API           | extension -> Cloudflare Worker       | `c3-worker.ts`, `c3-fixtures.ts` | Mo               | v0 Wed Oct 28    |
 | C4 Brand list           | `brands/brands.json` -> brand checks | `c4-brand.ts`                    | Brandon          | start of Stage 2 |
 | C5 Feature spec, model  | features -> model evaluator          | not yet                          | Ethan Rajack, Mo | start of Stage 2 |
-| C6 Test set             | `eval/testset_v*.csv` -> evaluation  | not yet                          | Ethan Rajack     | start of Stage 2 |
+| C6 Test set             | `eval/testset_v*.csv` -> evaluation  | `eval/README.md`                 | Ethan Rajack     | start of Stage 2 |
 | Parsed URL (unnumbered) | parser -> checks and features        | `parsed-url.ts`                  | Brandon          | n/a              |
 
 ## Rules that the contracts encode
