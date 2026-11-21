@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Demo sign-in page (not a real site)</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 28rem;
+        margin: 4rem auto;
+        padding: 0 1rem;
+        color: #1a1a1a;
+      }
+      .banner {
+        background: #fff3cd;
+        border: 1px solid #d4a72c;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+      }
+      form {
+        border: 1px solid #ddd;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+      }
+      label {
+        display: block;
+        margin-top: 1rem;
+        font-size: 0.9rem;
+      }
+      input {
+        width: 100%;
+        padding: 0.5rem;
+        margin-top: 0.25rem;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 1.5rem;
+        padding: 0.5rem 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="banner">
+      This is a PhishClaw team demo page (STY-111). It only exists on this laptop, reached through a
+      hosts-file entry — it is not a real site and sends nothing anywhere.
+    </div>
+    <h1>Sign in</h1>
+    <form onsubmit="return false;">
+      <label>
+        Email
+        <input type="email" autocomplete="off" />
+      </label>
+      <label>
+        Password
+        <input type="password" autocomplete="off" />
+      </label>
+      <button type="submit" disabled>Sign in (disabled — demo only)</button>
+    </form>
+  </body>
+</html>

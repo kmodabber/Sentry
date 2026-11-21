@@ -8,6 +8,7 @@
     "build": "pnpm --filter @sentry-ext/extension build",
     "zip": "pnpm --filter @sentry-ext/extension zip",
     "worker:fake": "pnpm --filter @sentry-ext/worker dev:fake",
+    "demo": "node demo/serve.js",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present typecheck",

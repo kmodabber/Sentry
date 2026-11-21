@@ -136,4 +136,10 @@ describe("createLookalikeCheck (STY-68)", () => {
     expect(result.signal).toBe("ok");
     expect(result.reason).toBeNull();
   });
+
+  it("flags paypa1.com (STY-111's demo page name) with the exact gate-demo reason", async () => {
+    const result = await check.check("http://paypa1.com/", {});
+    expect(result.signal).toBe("danger");
+    expect(result.reason).toBe("This looks like paypal.com but it is not.");
+  });
 });
