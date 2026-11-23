@@ -18,6 +18,16 @@ export type Signal = "danger" | "warn" | "info" | "ok" | "error" | "skipped";
 
 export type Source = "google" | "openphish" | "urlhaus" | "rdap";
 
+/**
+ * Evidence shape for the "lookalike", "homograph" and "brand_misuse" checks. brand is the
+ * brand's real domain, e.g. "paypal.com" — this is what the popup's domain highlight
+ * (STY-FR-32) reads to know which brand a fake site is imitating.
+ */
+export interface BrandEvidence {
+  brand: string;
+  edits?: number;
+}
+
 export interface CheckResult {
   check: CheckId;
   signal: Signal;
@@ -27,8 +37,8 @@ export interface CheckResult {
   feedHit?: boolean;
   /** One plain sentence for the popup. */
   reason: string | null;
-  /** E.g. { brand: "paypal.com", edits: 1 }. */
-  evidence?: Record<string, unknown>;
+  /** BrandEvidence for "lookalike", "homograph" and "brand_misuse"; freeform for everything else. */
+  evidence?: BrandEvidence | Record<string, unknown>;
   source?: Source;
   /** How long the check took. */
   ms: number;
