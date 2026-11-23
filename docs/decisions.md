@@ -2,6 +2,7 @@
 
 One line per contract or design change, newest first: `date · what · who`.
 
+- 2026-11-22 · FR-25 data splits: val is Sep 2025 (latest train month); Sep 8 2025 is in both PhreshPhish splits, so it is dropped from train/val and kept in test; mixed month = 5-95% phishing (Jul 2024 and Nov 2024-Apr 2025 are not); test rows whose host is in train are flagged (33%); shortcut check finds no single-feature shortcut, but is_ip_host and has_port are 100% phishing, so STY-115 reports with and without them (STY-78) · Ethan Rajack
 - 2026-11-16 · Real Safe Browsing check replaces the stand-in: Google canonicalisation, up to 30 host/path expressions, only 4-byte prefixes sent, full hashes compared on-device. Listed hashes are cached until their expiresAt; "not listed" is cached 5 minutes because C3 carries no negative cache duration. Production builds call the deployed Worker; `pnpm dev` keeps the local fake (STY-63) · Mo
 - 2026-11-16 · Popup UI uses React through WXT's React module (@wxt-dev/module-react), not plain TypeScript as doc 02 section 1 says; it came with the first scaffold and the popup is small (STY-109) · Kam, Mo
 - 2026-11-16 · Python 3.12 everywhere: CI, the OpenPhish collector and ml/pyproject.toml, matching doc 02 (STY-109) · Kam
