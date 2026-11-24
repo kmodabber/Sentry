@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Check, CheckResult } from "@sentry-ext/contracts";
-import { runPipeline, scoreResults, STANDIN_CHECKS } from "../src";
+import { createLookalikeCheck, runPipeline, scoreResults, STANDIN_CHECKS } from "../src";
 
 const run = (url: string, checks: Check[] = STANDIN_CHECKS) =>
   runPipeline({ url, checks, version: "0.0.1/standin" });
@@ -10,13 +10,13 @@ function result(over: Partial<CheckResult>): CheckResult {
 }
 
 describe("runPipeline with stand-ins", () => {
-  it("flags a known-bad lookalike as dangerous", async () => {
-    const v = await run("https://login.paypa1.com/");
+  it("flags a known-bad lookalike as dangerous (STY-68: real check, not a stand-in)", async () => {
+    const v = await run("https://login.paypa1.com/", [createLookalikeCheck()]);
     expect(v.verdict).toBe("dangerous");
     expect(v.host).toBe("login.paypa1.com");
     expect(v.registrableDomain).toBe("paypa1.com");
     expect(v.reasons[0]).toEqual({
-      text: "This domain looks like paypal.com but isn't.",
+      text: "This looks like paypal.com but it is not.",
       check: "lookalike",
     });
     expect(v.partial).toBe(false);
