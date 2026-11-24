@@ -1,4 +1,5 @@
 import {
+  createBrandMisuseCheck,
   createDisguisedCharactersCheck,
   createLookalikeCheck,
   createSafeBrowsingCheck,
@@ -26,6 +27,7 @@ const CHECKS = [
   createSafeBrowsingCheck(createWorkerClient(WORKER_URL)),
   createLookalikeCheck(),
   createDisguisedCharactersCheck(),
+  createBrandMisuseCheck(),
 ];
 
 export default defineBackground(() => {
@@ -38,8 +40,8 @@ export default defineBackground(() => {
 
 async function checkPage(url: string): Promise<Verdict | { error: string }> {
   try {
-    // Safe Browsing (STY-63), lookalike (STY-68) and disguised characters (STY-69) are real;
-    // red flags is still a stand-in.
+    // Safe Browsing (STY-63), lookalike (STY-68), disguised characters (STY-69) and
+    // brand-in-the-wrong-place (STY-70) are real; red flags is still a stand-in.
     return await runPipeline({
       url,
       checks: CHECKS,
