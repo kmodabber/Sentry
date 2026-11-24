@@ -11,6 +11,6 @@
   },
   "dependencies": {
     "@sentry-ext/contracts": "workspace:*",
-    "tldts": "^7.5.2"
+    "tldts": "^7.5.5"
   }
 }
