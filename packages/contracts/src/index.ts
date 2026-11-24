@@ -5,3 +5,4 @@ export * from "./c3-fixtures";
 export * from "./parsed-url";
 export * from "./c5-model";
 export * from "./c4-brand";
+export * from "./brand-match";
