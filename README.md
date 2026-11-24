@@ -9,7 +9,7 @@ A Chrome extension that tells you, in plain language, whether the page you're on
 3. `pnpm dev`: Chrome opens with PhishClaw loaded
 4. Click the PhishClaw icon on any page to see a verdict
 
-Try `https://paypa1.com` as a typed address in a test: the stand-in checks flag it as a lookalike. Never visit it.
+For a real lookalike verdict without visiting anything live, see `demo/README.md`: a hosts-file entry and a local page let you try it safely.
 
 ## Commands
 
@@ -19,6 +19,7 @@ Try `https://paypa1.com` as a typed address in a test: the stand-in checks flag 
 | `pnpm build`       | Build the extension into `apps/extension/.output`                   |
 | `pnpm zip`         | Build the zip for the Chrome Web Store                              |
 | `pnpm worker:fake` | Run the Worker on localhost:8787 with fixed answers, no keys needed |
+| `pnpm demo`        | Serve the local lookalike demo page (`demo/README.md`)              |
 | `pnpm lint`        | ESLint and Prettier check                                           |
 | `pnpm typecheck`   | TypeScript checks in every package                                  |
 | `pnpm test`        | Vitest in every package                                             |
@@ -49,6 +50,7 @@ packages/url-parser tldts wrapper and parsing tests (Brandon)
 packages/features   features shared with the in-browser model (Ethan Rajack)
 ml/                 Python data, training, evaluation (Ethan Rajack)
 fixtures/urls       known-good and known-bad URLs, typed, never visited
+demo/               local lookalike page and hosts-file setup for the gate demo (Brandon)
 data/               gitignored datasets
 docs/               contracts, decisions log, CTS material
 ```
