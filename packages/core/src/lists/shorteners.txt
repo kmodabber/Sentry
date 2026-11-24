@@ -1,0 +1,10 @@
+# Known URL shortener domains (STY-71). Matched against ParsedUrl.domain (the
+# registrable domain) exactly, never a substring -- "bit.ly.evil.com" must not match.
+bit.ly
+tinyurl.com
+t.co
+goo.gl
+ow.ly
+is.gd
+cutt.ly
+rebrand.ly

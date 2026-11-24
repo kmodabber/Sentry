@@ -2,6 +2,7 @@
 
 One line per contract or design change, newest first: `date · what · who`.
 
+- 2026-11-24 · Real red_flags check (STY-71/STY-FR-18) replaces the stand-in: detects an IP host, an @ in the URL, more than 3 subdomain levels (www counts as one), a URL over 100 characters, an abused TLD, a known shortener and a free-hosting platform, each from parseUrl's own fields, no re-parsing. scoring.json gains a "red_flags" section with per-flag point weights -- PLACEHOLDER values until Brandon tunes them on test-set data in Stage 3 (STY-FR-23); thresholds/maxReasons unchanged. The TLD/shortener/hosting-platform lists live in packages/core/src/lists so the known-sites check (STY-FR-19) can reuse hosting_platforms.txt. C1 unchanged: evidence carries every flag found, reason is the highest-scoring one's · Ethan Ung
 - 2026-11-16 · Real Safe Browsing check replaces the stand-in: Google canonicalisation, up to 30 host/path expressions, only 4-byte prefixes sent, full hashes compared on-device. Listed hashes are cached until their expiresAt; "not listed" is cached 5 minutes because C3 carries no negative cache duration. Production builds call the deployed Worker; `pnpm dev` keeps the local fake (STY-63) · Mo
 - 2026-11-16 · Popup UI uses React through WXT's React module (@wxt-dev/module-react), not plain TypeScript as doc 02 section 1 says; it came with the first scaffold and the popup is small (STY-109) · Kam, Mo
 - 2026-11-16 · Python 3.12 everywhere: CI, the OpenPhish collector and ml/pyproject.toml, matching doc 02 (STY-109) · Kam

@@ -1,0 +1,14 @@
+# TLDs often abused by scam/phishing sites (STY-71). One entry per line, matched
+# against ParsedUrl.publicSuffix exactly. Placeholder list; Brandon tunes in Stage 3.
+xyz
+top
+tk
+zip
+click
+cfd
+sbs
+rest
+ml
+ga
+cf
+gq

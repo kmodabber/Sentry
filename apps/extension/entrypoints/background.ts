@@ -1,8 +1,9 @@
 import {
   createSafeBrowsingCheck,
   createWorkerClient,
+  redFlagsCheck,
   runPipeline,
-  STANDIN_CHECKS,
+  standinLookalike,
 } from "@sentry-ext/core";
 import type { Verdict } from "@sentry-ext/contracts";
 
@@ -19,7 +20,12 @@ const WORKER_URL: string =
   import.meta.env.WXT_WORKER_URL ??
   (import.meta.env.DEV ? "http://localhost:8787" : DEPLOYED_WORKER_URL);
 // One instance for the background's lifetime, so its Safe Browsing cache is shared by all checks.
-const CHECKS = [...STANDIN_CHECKS, createSafeBrowsingCheck(createWorkerClient(WORKER_URL))];
+// red_flags is real now (STY-71); lookalike is still a stand-in.
+const CHECKS = [
+  standinLookalike,
+  redFlagsCheck,
+  createSafeBrowsingCheck(createWorkerClient(WORKER_URL)),
+];
 
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((msg: CheckPageMessage, _sender, sendResponse) => {
@@ -31,7 +37,7 @@ export default defineBackground(() => {
 
 async function checkPage(url: string): Promise<Verdict | { error: string }> {
   try {
-    // Safe Browsing is real (STY-63); the other checks are still stand-ins.
+    // Safe Browsing (STY-63) and red_flags (STY-71) are real; lookalike is still a stand-in.
     return await runPipeline({
       url,
       checks: CHECKS,

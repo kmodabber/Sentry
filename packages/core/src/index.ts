@@ -8,4 +8,11 @@ export {
   expressions,
   type SafeBrowsingOptions,
 } from "./checks/safebrowsing";
+export {
+  findRedFlags,
+  redFlagsCheck,
+  sumRedFlagPoints,
+  type RedFlagHit,
+  type RedFlagId,
+} from "./checks/red-flags";
 export { createWorkerClient, WorkerRequestError, type WorkerClient } from "./worker-client";

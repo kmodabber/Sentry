@@ -1,0 +1,18 @@
+# Free-hosting platforms (STY-71). Also used by the known-sites check (STY-FR-19),
+# which is why this lives here rather than inside a single check's own file.
+# Matched against ParsedUrl.hostname: either equal to an entry, or ending in
+# ".<entry>", so "notgithub.io" does not match "github.io" and a page on
+# "x.github.io" does. Some entries (sites.google.com) are themselves a fixed
+# subdomain of a larger legitimate site, which this suffix match also covers.
+weebly.com
+wixsite.com
+000webhostapp.com
+github.io
+firebaseapp.com
+web.app
+netlify.app
+vercel.app
+pages.dev
+glitch.me
+blogspot.com
+sites.google.com
