@@ -22,4 +22,11 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // demo/serve.js is plain Node, not part of a package's tsconfig.
+    files: ["demo/**/*.js"],
+    languageOptions: {
+      globals: { process: "readonly", console: "readonly", URL: "readonly" },
+    },
+  },
 );
