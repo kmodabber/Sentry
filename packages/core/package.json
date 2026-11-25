@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@sentry-ext/contracts": "workspace:*",
-    "@sentry-ext/url-parser": "workspace:*"
+    "@sentry-ext/url-parser": "workspace:*",
+    "unicode-confusables": "^0.1.1"
   }
 }

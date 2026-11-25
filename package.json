@@ -8,6 +8,7 @@
     "build": "pnpm --filter @sentry-ext/extension build",
     "zip": "pnpm --filter @sentry-ext/extension zip",
     "worker:fake": "pnpm --filter @sentry-ext/worker dev:fake",
+    "demo": "node demo/serve.js",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present typecheck",
@@ -15,11 +16,12 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.6",
     "eslint": "^10.15.0",
     "prettier": "^3.10.1",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.72.2",
-    "vitest": "^5.1.0"
+    "typescript-eslint": "^8.73.0",
+    "vitest": "^5.1.1"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

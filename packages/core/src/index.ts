@@ -1,6 +1,6 @@
 export { runPipeline, type PipelineOptions } from "./pipeline";
 export { scoreResults } from "./scorer";
-export { STANDIN_CHECKS, standinLookalike, standinRedFlags } from "./standins";
+export { STANDIN_CHECKS, standinRedFlags } from "./standins";
 export {
   canonicalize,
   canonicalString,
@@ -15,4 +15,21 @@ export {
   type RedFlagHit,
   type RedFlagId,
 } from "./checks/red-flags";
+export {
+  createLookalikeCheck,
+  editDistance,
+  findLookalike,
+  SAFE_DOMAINS,
+  type LookalikeMatch,
+} from "./checks/lookalike";
+export {
+  createDisguisedCharactersCheck,
+  findHomograph,
+  type HomographMatch,
+} from "./checks/disguised-characters";
+export {
+  createBrandMisuseCheck,
+  findBrandMisuse,
+  type BrandMisuseMatch,
+} from "./checks/brand-misuse";
 export { createWorkerClient, WorkerRequestError, type WorkerClient } from "./worker-client";

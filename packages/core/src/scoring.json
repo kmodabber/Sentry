@@ -1,5 +1,5 @@
 {
-  "thresholds": { "suspicious": 40, "dangerous": 70 },
+  "thresholds": { "suspicious": 35, "dangerous": 70 },
   "maxReasons": 4,
   "red_flags": {
     "ip_host": 25,
