@@ -38,7 +38,7 @@ function rowsFromCsv(csv: string): [string, string][] {
 
 // known_bad.csv also covers the red-flags stand-in (a bare IP address) — not this check's job.
 const knownBadLookalikes = rowsFromCsv(knownBadRaw)
-  .filter(([, reason]) => reason.includes("lookalike"))
+  .filter(([, reason]) => reason.startsWith("lookalike of"))
   .map(([url]) => url);
 
 describe("editDistance", () => {
