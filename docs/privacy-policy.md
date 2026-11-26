@@ -1,12 +1,12 @@
 # Sentry privacy policy
 
-**Last updated: November 24, 2026**
+**Last updated: November 25, 2026**
 
 ## Summary
 
 - Sentry only checks a page when you click its icon. It never watches your browsing.
-- Your full web address never leaves your browser. Only a scrambled, partial piece of it is
-  sent out, to check against a known-bad list.
+- Your full web address never leaves your browser. Only short scrambled (hashed) pieces of a
+  few forms of it are sent out, to check against a known-bad list.
 - No tracking, no analytics, no accounts.
 - Nothing is sold or shared with anyone.
 
@@ -20,23 +20,28 @@ background, and it does not watch, log, or react to pages you visit unless you c
 
 ## What leaves your browser, and where it goes
 
-| Service               | What is sent                                                                      | Why                                                              |
-| --------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Our Cloudflare Worker | A scrambled (hashed), 4-byte piece of the page's address — never the full address | Relays the check to Google Safe Browsing and compares the result |
-| Google Safe Browsing  | The same 4-byte hashed pieces, relayed by our Worker                              | To check whether the page is a known phishing or malware site    |
+| Service               | What is sent                                                                                  | Why                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Our Cloudflare Worker | Short scrambled (hashed) pieces of a few forms of the page's address — never the full address | Passes the check on to Google Safe Browsing and returns Google's answer |
+| Google Safe Browsing  | The same hashed pieces, relayed by our Worker                                                 | To check whether the page is a known phishing or malware site           |
 
 That's the only outside service Sentry talks to today. The comparison that decides whether your
 page matches anything is finished inside your browser — Google and our Worker never see your
 full address.
 
+Our Worker also sees your IP address, as any website does, and uses it only to limit how many
+requests one address can make per minute. It's kept in memory for about a minute and never
+logged or stored.
+
 ## What stays in your browser
 
 The page's full address, and the final result of comparing it against Safe Browsing's answer,
-never leave your browser. Sentry also runs a couple of basic checks (like noticing a bare number
-address instead of a name) entirely on your device.
+never leave your browser. Sentry also runs several checks on the address itself, entirely on
+your device.
 
 Sentry does not currently save a history of pages you've checked, and it has no settings to turn
-on or off. Each time you click the icon, it starts fresh.
+on or off. To avoid asking Google twice, the extension keeps Google's answers on your device
+until Google says they expire, usually a few minutes.
 
 ## What we don't collect or do
 
@@ -84,3 +89,12 @@ If this policy changes, the update will be posted on this page with a new "Last 
 
 Questions about this policy can be sent to the Western Cyber Society (WCS) team at
 [TODO: WCS CONTACT EMAIL].
+
+<!--
+Maintainer note: once the URLhaus/RDAP check or the OpenPhish check ships, the hostname will go
+in plain text from the extension to our Worker, and from the Worker to abuse.ch, rdap.org and/or
+OpenPhish. That makes the "only scrambled pieces are sent" claim in this policy false for those
+requests. Updating this policy (the summary, the "What leaves your browser" table, and the
+Third-party services section) must be part of the Definition of Done for whichever ticket lands
+either of those checks.
+-->
