@@ -1,6 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
-import { findRedFlags, redFlagsCheck, sumRedFlagPoints, type RedFlagHit } from "../src";
+import type { Check } from "@sentry-ext/contracts";
+import {
+  createBrandMisuseCheck,
+  createDisguisedCharactersCheck,
+  createLookalikeCheck,
+  findRedFlags,
+  redFlagsCheck,
+  runPipeline,
+  sumRedFlagPoints,
+  type RedFlagHit,
+} from "../src";
 import scoring from "../src/scoring.json";
+import knownBadRaw from "../../../fixtures/urls/known_bad.csv?raw";
 
 const WEIGHTS = scoring.red_flags;
 
@@ -41,6 +52,16 @@ describe("findRedFlags (TC-08)", () => {
       expect(findRedFlags("http://user@evil-site.com/")).toEqual([
         { id: "at_symbol", points: WEIGHTS.at_symbol, reason: expect.any(String) },
       ]);
+    });
+
+    it("at_symbol: an @ in the path, not just in userinfo", () => {
+      const hits = findRedFlags("http://evil.com/x@paypal.com");
+      expect(hits.map((h) => h.id)).toEqual(["at_symbol"]);
+    });
+
+    it('at_symbol: an empty userinfo ("@" with nothing before it) still fires', () => {
+      const hits = findRedFlags("http://@evil.com/");
+      expect(hits.map((h) => h.id)).toEqual(["at_symbol"]);
     });
 
     it("deep_subdomains: 4 levels", () => {
@@ -85,6 +106,16 @@ describe("findRedFlags (TC-08)", () => {
       ]);
     });
 
+    it("abused_tld: a multi-part suffix built on an abused TLD (evil.com.ml) still fires", () => {
+      const hits = findRedFlags("http://evil.com.ml/");
+      expect(hits.map((h) => h.id)).toEqual(["abused_tld"]);
+    });
+
+    it("abused_tld: a clean multi-part suffix (example.co.uk) does not fire", () => {
+      const hits = findRedFlags("http://example.co.uk/");
+      expect(hits.find((h) => h.id === "abused_tld")).toBeUndefined();
+    });
+
     it("shortener", () => {
       expect(findRedFlags("http://bit.ly/abc123")).toEqual([
         { id: "shortener", points: WEIGHTS.shortener, reason: expect.any(String) },
@@ -120,8 +151,8 @@ describe("findRedFlags (TC-08)", () => {
       const url = prefix + "a".repeat(Math.max(0, 101 - prefix.length));
       const hits = findRedFlags(url);
       expect(hits.map((h) => h.id)).toEqual([
-        "at_symbol",
         "shortener",
+        "at_symbol",
         "deep_subdomains",
         "long_url",
       ]);
@@ -194,7 +225,7 @@ describe("redFlagsCheck (the registered Check)", () => {
   it("picks the highest-scoring flag's reason when several fire", async () => {
     const result = await redFlagsCheck.check("http://user@scam.xyz/", {});
     const flags = (result.evidence as { flags: RedFlagHit[] }).flags;
-    expect(flags[0]?.id).toBe("at_symbol"); // 25 > abused_tld's 10
+    expect(flags[0]?.id).toBe("at_symbol"); // 25 > abused_tld's 15
     expect(result.reason).toBe(flags[0]?.reason);
   });
 
@@ -208,5 +239,40 @@ describe("redFlagsCheck (the registered Check)", () => {
     expect(result.points).toBe(99);
     vi.doUnmock("../src/scoring.json");
     vi.resetModules();
+  });
+});
+
+// Reviewer request (STY-71 review): every row in fixtures/urls/known_bad.csv must score
+// above "likely safe" through the full real pipeline, not just red_flags in isolation --
+// the lookalike/disguised-characters/brand-misuse rows depend on those checks, not this one.
+// Safe Browsing is stubbed as "not listed" since it needs a live WorkerClient otherwise.
+const stubSafeBrowsing: Check = {
+  id: "safebrowsing",
+  timeoutMs: 100,
+  async check() {
+    return { check: "safebrowsing", signal: "ok", points: 0, reason: null, ms: 0 };
+  },
+};
+
+const knownBadUrls = knownBadRaw
+  .split(/\r?\n/)
+  .slice(1)
+  .filter(Boolean)
+  .map((line) => line.split(",")[0]!);
+
+describe("known_bad.csv guarantee (reviewer request)", () => {
+  it.each(knownBadUrls)("%s is never likely_safe", async (url) => {
+    const v = await runPipeline({
+      url,
+      checks: [
+        redFlagsCheck,
+        stubSafeBrowsing,
+        createLookalikeCheck(),
+        createDisguisedCharactersCheck(),
+        createBrandMisuseCheck(),
+      ],
+      version: "0.0.1/test",
+    });
+    expect(v.verdict).not.toBe("likely_safe");
   });
 });

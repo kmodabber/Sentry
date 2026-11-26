@@ -51,7 +51,10 @@ export function findRedFlags(url: string): RedFlagHit[] {
     });
   }
 
-  if (parsed.userInfo !== null) {
+  // Checked on the raw input, not parsed.userInfo: the parser drops "@" from userInfo
+  // whenever it's empty ("http://@evil.com/") or the "@" is actually in the path
+  // ("http://evil.com/x@paypal.com"), but either placement is still the same trick.
+  if (url.includes("@")) {
     hits.push({
       id: "at_symbol",
       points: WEIGHTS.at_symbol,
@@ -77,7 +80,10 @@ export function findRedFlags(url: string): RedFlagHit[] {
     });
   }
 
-  if (parsed.publicSuffix && ABUSED_TLDS.has(parsed.publicSuffix)) {
+  // Compare only the last label ("ml" out of "com.ml"), so a multi-part suffix built on
+  // an abused TLD (evil.com.ml) is caught the same way the bare TLD (evil.ml) is.
+  const tldLastLabel = parsed.publicSuffix ? parsed.publicSuffix.split(".").pop() : undefined;
+  if (tldLastLabel && ABUSED_TLDS.has(tldLastLabel)) {
     hits.push({
       id: "abused_tld",
       points: WEIGHTS.abused_tld,
