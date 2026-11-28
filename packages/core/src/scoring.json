@@ -1,4 +1,13 @@
 {
   "thresholds": { "suspicious": 35, "dangerous": 70 },
-  "maxReasons": 4
+  "maxReasons": 4,
+  "red_flags": {
+    "ip_host": 40,
+    "at_symbol": 25,
+    "free_hosting": 35,
+    "shortener": 35,
+    "abused_tld": 15,
+    "deep_subdomains": 10,
+    "long_url": 5
+  }
 }

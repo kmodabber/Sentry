@@ -9,6 +9,13 @@ export {
   type SafeBrowsingOptions,
 } from "./checks/safebrowsing";
 export {
+  findRedFlags,
+  redFlagsCheck,
+  sumRedFlagPoints,
+  type RedFlagHit,
+  type RedFlagId,
+} from "./checks/red-flags";
+export {
   createLookalikeCheck,
   editDistance,
   findLookalike,

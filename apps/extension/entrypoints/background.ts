@@ -4,8 +4,8 @@ import {
   createLookalikeCheck,
   createSafeBrowsingCheck,
   createWorkerClient,
+  redFlagsCheck,
   runPipeline,
-  STANDIN_CHECKS,
 } from "@sentry-ext/core";
 import type { Verdict } from "@sentry-ext/contracts";
 
@@ -22,8 +22,10 @@ const WORKER_URL: string =
   import.meta.env.WXT_WORKER_URL ??
   (import.meta.env.DEV ? "http://localhost:8787" : DEPLOYED_WORKER_URL);
 // One instance for the background's lifetime, so its Safe Browsing cache is shared by all checks.
+// Every check is real now: red_flags (STY-71), Safe Browsing (STY-63), lookalike (STY-68),
+// disguised characters (STY-69) and brand-in-the-wrong-place (STY-70).
 const CHECKS = [
-  ...STANDIN_CHECKS,
+  redFlagsCheck,
   createSafeBrowsingCheck(createWorkerClient(WORKER_URL)),
   createLookalikeCheck(),
   createDisguisedCharactersCheck(),
@@ -40,8 +42,8 @@ export default defineBackground(() => {
 
 async function checkPage(url: string): Promise<Verdict | { error: string }> {
   try {
-    // Safe Browsing (STY-63), lookalike (STY-68), disguised characters (STY-69) and
-    // brand-in-the-wrong-place (STY-70) are real; red flags is still a stand-in.
+    // Every check is real now: Safe Browsing (STY-63), lookalike (STY-68), disguised
+    // characters (STY-69), brand-in-the-wrong-place (STY-70) and red flags (STY-71).
     return await runPipeline({
       url,
       checks: CHECKS,

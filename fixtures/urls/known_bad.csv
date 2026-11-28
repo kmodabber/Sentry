@@ -2,5 +2,8 @@ url,reason
 https://paypa1.com/signin,lookalike of paypal.com
 https://login.rnicrosoft.com/,lookalike of microsoft.com
 http://192.0.2.10/login,bare IP address
+http://bit.ly/abc123,known URL shortener
+http://user@scam-site.xyz/,@ symbol plus an abused TLD
+http://someuser.github.io/,free-hosting platform
 https://pаypal.com/,disguised Cyrillic characters spelling paypal.com
 https://interac.etransfer-refund.com/,mentions Interac in the subdomain while the real site is etransfer-refund.com
